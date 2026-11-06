@@ -1,0 +1,26 @@
+min_version = { hard = "2026.11.3" }
+
+[settings]
+env_shell_expand = true
+experimental = true
+locked = false
+lockfile = true
+lockfile_platforms = ["linux-x64", "macos-arm64"]
+task.quiet = true
+task.run_auto_install = true
+
+[tools]
+container = "latest"
+"github:saiyam1814/kiac" = { version = "latest", depends = "container" }
+
+# Lisette 0.12.5's bindgen only knows Go 1.26 stdlib typedefs.
+# Go 1.27 aliases `encoding/json.RawMessage` to `jsontext.Value`,
+# which Lisette cannot resolve, so this project pins the older Go toolchain.
+go = "prefix:1.26"
+
+pkl = "latest"
+
+[tools.lisette]
+version = "latest"
+version_prefix = "lisette-v"
+postinstall = "lis complete zsh >| ${XDG_CACHE_HOME:-~/.cache}/zsh/completions/_lis.zsh"
