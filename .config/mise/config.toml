@@ -34,3 +34,9 @@ run = """
 cache.enabled = true
 sources = ["formae-plugin.pkl"]
 outputs = []
+
+[tasks.check]
+description = "runs all static checks and tests"
+depends = [
+  "validate:manifest",
+]
