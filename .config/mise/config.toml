@@ -24,3 +24,13 @@ pkl = "latest"
 version = "latest"
 version_prefix = "lisette-v"
 postinstall = "lis complete zsh >| ${XDG_CACHE_HOME:-~/.cache}/zsh/completions/_lis.zsh"
+
+[tasks."validate:manifest"]
+description = "validates the plugin manifest"
+run = """
+  pkl eval formae-plugin.pkl --format json 1> /dev/null
+  echo "Plugin manifest validated successfully"
+"""
+cache.enabled = true
+sources = ["formae-plugin.pkl"]
+outputs = []
