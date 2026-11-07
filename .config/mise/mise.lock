@@ -2,28 +2,6 @@
 
 lockfile_version = 3
 
-[[tools.container]]
-version = "1.7.1"
-backend = "aqua:apple/container"
-specifiers = ["latest"]
-
-[tools.container."platforms.macos-arm64"]
-checksum = "sha256:b6739caf3d47ca53a78f1a7edf32521420a75c7941838c3cefa75f30b80f5a97"
-checksum_source = "mise-versions"
-url = "https://github.com/apple/container/releases/download/1.7.1/container-1.7.1-installer-signed.pkg"
-url_api = "https://api.github.com/repos/apple/container/releases/assets/719067242"
-
-[[tools."github:saiyam1814/kiac"]]
-version = "0.11.0"
-backend = "github:saiyam1814/kiac"
-specifiers = ["latest"]
-
-[tools."github:saiyam1814/kiac"."platforms.macos-arm64"]
-checksum = "sha256:8a785db8fee9a61c8b966e7dd3c6c6333a2f0a21cb56ebe0e02f89857e42f579"
-url = "https://github.com/saiyam1814/kiac/releases/download/v0.11.0/kiac_0.11.0_darwin_arm64.tar.gz"
-url_api = "https://api.github.com/repos/saiyam1814/kiac/releases/assets/702487163"
-provenance = "github-attestations"
-
 [[tools.go]]
 version = "1.26.10"
 backend = "core:go"
