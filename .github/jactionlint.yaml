@@ -1,0 +1,13 @@
+# yaml-language-server: $schema=https://raw.githubusercontent.com/jdx/jactionlint/main/schema/jactionlint-config.json
+
+profile: pedantic
+
+rules:
+  cache-poisoning: off
+  dependabot-cooldown: off
+  mutable-runner-label: off
+  require-shell: off
+  unpinned-uses:
+    policies:
+      actions/*: ref-pin
+      jdx/mise-action/*: ref-pin
