@@ -1,0 +1,51 @@
+name: CI
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}-${{ github.event_name }}
+  cancel-in-progress: true
+
+# Least privilege:
+#   CI only needs to read the repo.
+#   jdx/mise-action gets github.token for API calls, which read access covers.
+#
+# Grant write per-job if ever required, never at the top level.
+permissions:
+  contents: read
+
+on:
+  push:
+    branches:
+      - trunk
+    paths-ignore: &ci-ignored-paths
+      - "docs/**/*"
+      - "examples/**/*"
+      - .editorconfig
+      - .gitattributes
+      - .gitignore
+      - .markdownlint-cli2.yaml
+      - LICENSE
+      - README.md
+    tags:
+      - "*"
+
+  pull_request:
+    branches:
+      - trunk
+    paths-ignore: *ci-ignored-paths
+
+jobs:
+  check:
+    name: Check
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v7
+
+      - uses: jdx/mise-action@v5
+        with:
+          cache: true
+          cache_restore_retry_budget: 30s
+          cache_save_retry_budget: 90s
+          version: 2026.11.4
+
+      - run: mise run check
