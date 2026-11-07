@@ -3,7 +3,8 @@ name = "kiac"
 
 version = "0.1.0"
 
-// Namespace appears in resource type IDs as the uppercase prefix: <NAMESPACE>::<Module>::<Resource>.
+// Namespace appears in resource type IDs as the uppercase prefix.
+// format: <NAMESPACE>::<Module>::<Resource>.
 namespace = "KIAC"
 
 summary = "Declarative management of local Kubernetes clusters on macOS"
@@ -15,7 +16,8 @@ description = """
 
 category = "containers"
 
-// SPDX license identifier (must be one of: Apache-2.0, BSD-3-Clause, MIT, MPL-2.0 for the public Formae Hub).
+// SPDX license identifier
+// (must be one of: Apache-2.0, BSD-3-Clause, MIT, MPL-2.0 for the public Formae Hub).
 license = "MIT"
 
 minFormaeVersion = "0.90.5"
