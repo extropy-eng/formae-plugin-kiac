@@ -23,7 +23,11 @@ pkl = "latest"
 [tools.lisette]
 version = "latest"
 version_prefix = "lisette-v"
-postinstall = "lis complete zsh >| ${XDG_CACHE_HOME:-~/.cache}/zsh/completions/_lis.zsh"
+postinstall = """
+  completions_dir="${XDG_CACHE_HOME:-~/.cache}/zsh/completions"
+  mkdir -p $completions_dir
+  lis complete zsh >| $completions_dir/_lis.zsh
+"""
 
 [tasks."validate:manifest"]
 description = "validates the plugin manifest"
