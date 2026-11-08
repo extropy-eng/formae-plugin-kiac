@@ -29,6 +29,9 @@ postinstall = """
   lis complete zsh >| $completions_dir/_lis.zsh
 """
 
+[vars]
+go_flags = "-trimpath"
+
 [tasks."validate:manifest"]
 description = "validates the plugin manifest"
 run = """
@@ -46,9 +49,17 @@ cache.enabled = true
 sources = ["lisette.toml", "src/**/*.lis"]
 outputs = ["target"]
 
+[tasks."test"]
+description = "transpiles, builds and runs all tests"
+run = "lis test --go-flags {{ vars.go_flags }}"
+cache.enabled = true
+sources = ["lisette.toml", "src/**/*.lis"]
+outputs = ["target"]
+
 [tasks.check]
 description = "runs all static checks and tests"
 depends = [
   "lint",
+  "test",
   "validate:manifest",
 ]
