@@ -9,6 +9,9 @@ lockfile_platforms = ["linux-x64", "macos-arm64"]
 task.quiet = true
 task.run_auto_install = true
 
+[shell_alias]
+mdlint = "mise run --env=docs lint:markdown"
+
 [tools]
 # Lisette 0.12.5's bindgen only knows Go 1.26 stdlib typedefs.
 # Go 1.27 aliases `encoding/json.RawMessage` to `jsontext.Value`,

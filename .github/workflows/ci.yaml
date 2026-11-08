@@ -17,6 +17,8 @@ on:
     branches:
       - trunk
     paths-ignore: &ci-ignored-paths
+      - ".config/mise/{config.docs.toml,mise.docs.lock}"
+      - ".config/mise/locks/mise.docs/**/*"
       - "docs/**/*"
       - "examples/**/*"
       - .editorconfig

@@ -1,0 +1,27 @@
+[tools]
+markdownlint-cli2 = { version = "latest", depends = "node" }
+
+[tools.node]
+version = "lts"
+postinstall = """
+NPM_CACHE_HOME="${XDG_CACHE_HOME:-$HOME/.cache}/npm"
+NPM_CONFIG_HOME="${XDG_CONFIG_HOME:-$HOME/.config}/npm"
+NPM_DATA_HOME="${XDG_DATA_HOME:-$HOME/.local/share}/npm"
+NPM_STATE_HOME="${XDG_STATE_HOME:-$HOME/.local/state}/npm"
+
+mkdir -p $NPM_CONFIG_HOME $NPM_DATA_HOME
+
+cat << EOF | sed -E 's/^\\s+//' >| $NPM_CONFIG_HOME/npmrc
+  prefix=$NPM_DATA_HOME
+  cache=$NPM_CACHE_HOME
+  init-module=$NPM_CONFIG_HOME/config/npm-init.js
+  logs-dir=$NPM_STATE_HOME/logs
+EOF
+"""
+
+[tasks."lint:markdown"]
+description = "lints Markdown documentation"
+run = "markdownlint-cli2 '{**/*.md,!target/**/*.md}'"
+cache.enabled = true
+sources = ["README.md", "docs/**/*.md", ".markdownlint-cli2.yaml"]
+outputs = []
