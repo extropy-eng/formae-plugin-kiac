@@ -39,8 +39,16 @@ cache.enabled = true
 sources = ["formae-plugin.pkl"]
 outputs = []
 
+[tasks.lint]
+description = "lints and typechecks test and production code"
+run = "lis check . --deny warnings"
+cache.enabled = true
+sources = ["lisette.toml", "src/**/*.lis"]
+outputs = ["target"]
+
 [tasks.check]
 description = "runs all static checks and tests"
 depends = [
+  "lint",
   "validate:manifest",
 ]
