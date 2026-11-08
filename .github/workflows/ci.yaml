@@ -35,6 +35,7 @@ on:
       - trunk
     paths-ignore: *ci-ignored-paths
 
+  workflow_dispatch:
 jobs:
   check:
     name: Check
