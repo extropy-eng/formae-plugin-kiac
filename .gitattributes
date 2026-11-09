@@ -1,3 +1,4 @@
+mise*.lock gitlab-language=toml linguist-language=TOML
 *.lis      gitlab-language=rust linguist-language=Rust
 *.pkl      gitlab-language=pkl  linguist-language=Pkl
 Opkgfile   gitlab-language=pkl  linguist-language=Pkl
