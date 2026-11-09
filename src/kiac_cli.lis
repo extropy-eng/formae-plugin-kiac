@@ -107,6 +107,51 @@ fn run_kiac(
   }
 }
 
+// -------- cluster operations --------
+
+#[json(camel_case)]
+struct KiacNode {
+  name: string,
+  state: string,
+  ip: string,
+  image: string,
+  created: string,
+}
+
+#[json(camel_case)]
+#[equality]
+struct KiacCluster {
+  name: string,
+  status: string,
+  running_nodes: int,
+  total_nodes: int,
+  k8s_version: string,
+  created: string,
+  nodes: Slice<KiacNode>,
+}
+
+fn list_clusters(
+  ctx: context.Context,
+  target: TargetConfig,
+) -> Result<Slice<KiacCluster>, Failure> {
+  let result = run_kiac(ctx, target, ["get", "clusters", "-o", "json"])?
+  let output = strings.TrimSpace(result.stdout)
+  if output == "" || output == "null" {
+    Ok([])
+  } else {
+    let mut clusters: Slice<KiacCluster> = []
+    json
+      .Unmarshal(output as Slice<byte>, &clusters)
+      .map_err(|e| {
+        fail(
+          resource.OperationErrorCodeGeneralServiceException,
+          f"parse kiac clusters: {e.Error()}",
+        )
+      })?
+    Ok(clusters)
+  }
+}
+
 // ---------- shared helpers ----------
 
 /// Split "<left>/<right>" on the first slash.

@@ -136,3 +136,93 @@ fn run_fake_kiac_captures_stderr() -> Result<(), error> {
   )
   Ok(())
 }
+
+#[test("list clusters parses a JSON array of clusters")]
+fn list_clusters_parses_a_non_empty_response() -> Result<(), error> {
+  let clusters = [
+    KiacCluster {
+      name: "dev",
+      status: "2/2 running",
+      running_nodes: 2,
+      total_nodes: 2,
+      k8s_version: "v1.37.0-k3s1",
+      created: "2026-10-04T03:18:35Z",
+      nodes: [
+        KiacNode {
+          name: "cp",
+          state: "running",
+          ip: "10.0.0.1",
+          image: "img",
+          created: "2026-10-04T03:18:35Z",
+        },
+      ],
+    },
+  ]
+  let target = TargetConfig {
+    kiac_path: fake_kiac(f"echo '{json.Marshal(clusters)? as string}'")?,
+    ..,
+  }
+  let actual = list_clusters(context.Background(), target)?
+  assert actual.equals(clusters)
+  Ok(())
+}
+
+#[test("list clusters parses an empty JSON array")]
+fn list_clusters_parses_an_empty_response() -> Result<(), error> {
+  let target = TargetConfig {
+    kiac_path: fake_kiac("printf '[]'")?,
+    container_path: "container",
+    default_wait_seconds: 300,
+    status_timeout_seconds: 10,
+  }
+  let clusters = list_clusters(context.Background(), target)?
+  assert clusters.is_empty()
+  Ok(())
+}
+
+#[test("unmarshall a raw JSON array of clusters")]
+fn unmarshall_clusters() -> Result<(), error> {
+  let raw_clusters = "[
+    {
+      \"name\": \"dev\",
+      \"status\": \"2/2 running\",
+      \"runningNodes\": 2,
+      \"totalNodes\": 2,
+      \"k8sVersion\": \"v1.37.0-k3s1\",
+      \"created\": \"2026-10-04T03:18:35Z\",
+      \"nodes\": [
+        {
+          \"name\": \"cp\",
+          \"state\": \"running\",
+          \"ip\": \"10.0.0.1\",
+          \"image\": \"img\",
+          \"created\": \"2026-10-04T03:18:35Z\"
+        }
+      ]
+    }
+  ]"
+
+  let mut parsed = [KiacCluster { .. }]
+  json.Unmarshal(raw_clusters as Slice<byte>, &parsed)?
+
+  assert parsed.equals([
+    KiacCluster {
+      name: "dev",
+      status: "2/2 running",
+      running_nodes: 2,
+      total_nodes: 2,
+      k8s_version: "v1.37.0-k3s1",
+      created: "2026-10-04T03:18:35Z",
+      nodes: [
+        KiacNode {
+          name: "cp",
+          state: "running",
+          ip: "10.0.0.1",
+          image: "img",
+          created: "2026-10-04T03:18:35Z",
+        },
+      ],
+    },
+  ])
+  Ok(())
+}
