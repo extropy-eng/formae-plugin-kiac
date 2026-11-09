@@ -1,0 +1,48 @@
+// © 2026 Extropy Engineering
+//
+// SPDX-License-Identifier: MIT
+
+import "go:encoding/json"
+import "go:github.com/platform-engineering-labs/formae/pkg/plugin/resource"
+
+fn raw_message(text: string) -> mut json.RawMessage {
+  let mut encoded = (text as Slice<byte>).clone()
+  json.RawMessage(encoded)
+}
+
+/// Failure is an internal error that already knows its formae error code.
+#[allow(unused_struct_field)]
+struct Failure { code: resource.OperationErrorCode, message: string }
+
+impl Failure {
+  fn Error(self) -> string {
+    self.message
+  }
+}
+
+// ---------- target configuration ----------
+
+#[json]
+struct TargetConfig {
+  #[json("KiacPath")]
+  kiac_path: string,
+  #[json("ContainerPath")]
+  container_path: string,
+  #[json("DefaultWaitSeconds")]
+  default_wait_seconds: int,
+  #[json("StatusTimeoutSeconds")]
+  status_timeout_seconds: int,
+}
+
+const DEFAULT_STATUS_TIMEOUT_SECONDS = 10
+
+fn parse_target(_: json.RawMessage) -> Result<TargetConfig, Failure> {
+  Ok(
+    TargetConfig {
+      kiac_path: "kiac",
+      container_path: "container",
+      default_wait_seconds: 300,
+      status_timeout_seconds: DEFAULT_STATUS_TIMEOUT_SECONDS,
+    },
+  )
+}
