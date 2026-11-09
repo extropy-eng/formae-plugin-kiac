@@ -2,9 +2,13 @@
 //
 // SPDX-License-Identifier: MIT
 
+import "go:bytes"
+import "go:context"
 import "go:encoding/json"
 import "go:github.com/platform-engineering-labs/formae/pkg/plugin/resource"
+import "go:os/exec"
 import "go:strings"
+import "go:time"
 
 fn raw_message(text: string) -> mut json.RawMessage {
   let mut encoded = (text as Slice<byte>).clone()
@@ -74,6 +78,35 @@ fn parse_target(raw: json.RawMessage) -> Result<TargetConfig, Failure> {
   )
 }
 
+// ---------- process runner ----------
+
+struct ProcResult { stdout: string }
+
+fn run_kiac(
+  ctx: context.Context,
+  target: TargetConfig,
+  args: Slice<string>,
+) -> Result<ProcResult, Failure> {
+  let mut stdout = bytes.Buffer { .. }
+  let mut stderr = bytes.Buffer { .. }
+
+  let mut command = exec.CommandContext(ctx, target.kiac_path, args...)
+  command.Stdout = Some(&stdout)
+  command.Stderr = Some(&stderr)
+
+  // A killed kiac can leave a child holding the output pipes open; without a
+  // wait delay, Wait blocks past the context deadline until that child exits.
+  if ctx.Deadline().is_some() { command.WaitDelay = time.Second }
+
+  match command.Run() {
+    Ok(_) => Ok(ProcResult { stdout: stdout.String() }),
+    Err(err) => {
+      let message = first_non_empty([stderr.String(), err.Error()])
+      Err(fail(classify_error(message), message))
+    },
+  }
+}
+
 // ---------- shared helpers ----------
 
 /// Split "<left>/<right>" on the first slash.
@@ -81,6 +114,14 @@ fn parse_target(raw: json.RawMessage) -> Result<TargetConfig, Failure> {
 fn split_id(id: string) -> (string, string) {
   let parts = strings.SplitN(id, "/", 2)
   if parts.length() == 2 { (parts[0], parts[1]) } else { ("", id) }
+}
+
+fn first_non_empty(values: Slice<string>) -> string {
+  for value in values {
+    let trimmed = strings.TrimSpace(value)
+    if trimmed != "" { return trimmed }
+  }
+  ""
 }
 
 fn classify_error(stderr: string) -> resource.OperationErrorCode {
