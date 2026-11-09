@@ -47,7 +47,8 @@ fn unmarshall_target_config() -> Result<(), error> {
   let mut parsed = TargetConfig { .. }
   json.Unmarshal(raw.0, &parsed)?
 
-  assert parsed == TargetConfig {
+  assert parsed ==
+  TargetConfig {
     kiac_path: "/opt/kiac",
     container_path: "/usr/bin/container",
     default_wait_seconds: 60,
