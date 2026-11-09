@@ -29,3 +29,25 @@ fn target_overrides() -> Result<(), error> {
   assert actual == expected
   Ok(())
 }
+
+#[test("unmarshalling a raw JSON target produces a TargetConfig")]
+fn unmarshall_target_config() -> Result<(), error> {
+  let raw = raw_message(
+    "{
+      \"KiacPath\": \"/opt/kiac\",
+      \"ContainerPath\": \"/usr/bin/container\",
+      \"DefaultWaitSeconds\": 60,
+      \"StatusTimeoutSeconds\": 3
+   }",
+  )
+  let mut parsed = TargetConfig { .. }
+  json.Unmarshal(raw.0, &parsed)?
+
+  assert parsed == TargetConfig {
+    kiac_path: "/opt/kiac",
+    container_path: "/usr/bin/container",
+    default_wait_seconds: 60,
+    status_timeout_seconds: 3,
+  }
+  Ok(())
+}
