@@ -29,7 +29,7 @@ fn fail(code: resource.OperationErrorCode, message: string) -> Failure {
   Failure { code, message }
 }
 
-// ---------- target configuration ----------
+// ------- target configuration -------
 
 #[json]
 struct TargetConfig {
