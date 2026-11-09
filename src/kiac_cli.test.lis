@@ -3,6 +3,7 @@
 // SPDX-License-Identifier: MIT
 
 import "go:encoding/json"
+import "go:github.com/platform-engineering-labs/formae/pkg/plugin/resource"
 
 #[test("parsing an empty raw JSON target produces a target with default values")]
 fn target_defaults() -> Result<(), error> {
@@ -50,4 +51,34 @@ fn unmarshall_target_config() -> Result<(), error> {
     status_timeout_seconds: 3,
   }
   Ok(())
+}
+
+#[test("classify kiac operation error: AlreadyExists")]
+fn classify_cluster_already_exists() {
+  assert classify_error("cluster already exists") ==
+  resource.OperationErrorCodeAlreadyExists
+}
+
+#[test("classify kiac operation error: NotFound")]
+fn classify_cluster_not_found() {
+  assert classify_error("no such cluster") ==
+  resource.OperationErrorCodeNotFound
+}
+
+#[test("classify kiac operation error: ServiceTimeout")]
+fn classify_service_timeout() {
+  assert classify_error("timed out waiting for ready") ==
+  resource.OperationErrorCodeServiceTimeout
+}
+
+#[test("classify kiac operation error: AccessDenied")]
+fn classify_access_denied() {
+  assert classify_error("permission denied") ==
+  resource.OperationErrorCodeAccessDenied
+}
+
+#[test("classify kiac operation error: ServiceException")]
+fn classify_unknown_error() {
+  assert classify_error("unexpected") ==
+  resource.OperationErrorCodeGeneralServiceException
 }

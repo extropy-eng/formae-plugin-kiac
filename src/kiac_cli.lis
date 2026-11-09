@@ -4,6 +4,7 @@
 
 import "go:encoding/json"
 import "go:github.com/platform-engineering-labs/formae/pkg/plugin/resource"
+import "go:strings"
 
 fn raw_message(text: string) -> mut json.RawMessage {
   let mut encoded = (text as Slice<byte>).clone()
@@ -71,4 +72,17 @@ fn parse_target(raw: json.RawMessage) -> Result<TargetConfig, Failure> {
       ),
     },
   )
+}
+
+fn classify_error(stderr: string) -> resource.OperationErrorCode {
+  let rules = [
+    (["already exist"], resource.OperationErrorCodeAlreadyExists),
+    (["not found", "no such"], resource.OperationErrorCodeNotFound),
+    (["timed out", "timeout"], resource.OperationErrorCodeServiceTimeout),
+    (["permission", "denied"], resource.OperationErrorCodeAccessDenied),
+  ]
+  let lowercase_error = strings.ToLower(stderr)
+  rules
+    .find(|rule| rule.0.any(|needle| lowercase_error.contains(needle)))
+    .map_or(resource.OperationErrorCodeGeneralServiceException, |rule| rule.1)
 }
