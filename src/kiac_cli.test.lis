@@ -100,7 +100,7 @@ fn classify_unknown_error() {
 fn fake_kiac(body: string) -> Result<string, error> {
   let dir = os.MkdirTemp("", "kiac-test")?
   let path = filepath.Join(dir, "kiac")
-  os.WriteFile(path, ("#!/bin/sh\n" + body) as Slice<byte>, 0o755)?
+  os.WriteFile(path, (f"#!/bin/sh\n{body}") as Slice<byte>, 0o755)?
   Ok(path)
 }
 

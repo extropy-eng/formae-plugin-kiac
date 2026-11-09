@@ -61,7 +61,7 @@ fn parse_target(raw: json.RawMessage) -> Result<TargetConfig, Failure> {
       .map_err(|e| {
         fail(
           resource.OperationErrorCodeInvalidRequest,
-          "parse target config: " + e.Error(),
+          f"parse target config: {e.Error()}",
         )
       })?
   }
