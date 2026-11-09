@@ -2,6 +2,8 @@
 //
 // SPDX-License-Identifier: MIT
 
+import "go:encoding/json"
+
 #[test("parsing an empty raw JSON target produces a target with default values")]
 fn target_defaults() -> Result<(), error> {
   let actual = parse_target(raw_message(""))?
@@ -11,6 +13,19 @@ fn target_defaults() -> Result<(), error> {
     default_wait_seconds: 300,
     status_timeout_seconds: 10,
   }
+  assert actual == expected
+  Ok(())
+}
+
+#[test("parsing a raw JSON target produces a target with overridden values")]
+fn target_overrides() -> Result<(), error> {
+  let expected = TargetConfig {
+    kiac_path: "/opt/kiac",
+    container_path: "/usr/bin/container",
+    default_wait_seconds: 60,
+    status_timeout_seconds: 3,
+  }
+  let actual = parse_target(json.RawMessage(json.Marshal(expected)?))?
   assert actual == expected
   Ok(())
 }

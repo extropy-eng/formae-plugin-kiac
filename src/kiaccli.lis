@@ -20,6 +20,10 @@ impl Failure {
   }
 }
 
+fn fail(code: resource.OperationErrorCode, message: string) -> Failure {
+  Failure { code, message }
+}
+
 // ---------- target configuration ----------
 
 #[json]
@@ -36,13 +40,35 @@ struct TargetConfig {
 
 const DEFAULT_STATUS_TIMEOUT_SECONDS = 10
 
-fn parse_target(_: json.RawMessage) -> Result<TargetConfig, Failure> {
+fn non_empty(value: string, fallback: string) -> string {
+  if value.is_empty() { fallback } else { value }
+}
+
+fn positive(value: int, fallback: int) -> int {
+  if value > 0 { value } else { fallback }
+}
+
+fn parse_target(raw: json.RawMessage) -> Result<TargetConfig, Failure> {
+  let mut parsed = TargetConfig { .. }
+  if !raw.0.is_empty() {
+    json
+      .Unmarshal(raw.0, &parsed)
+      .map_err(|e| {
+        fail(
+          resource.OperationErrorCodeInvalidRequest,
+          "parse target config: " + e.Error(),
+        )
+      })?
+  }
   Ok(
     TargetConfig {
-      kiac_path: "kiac",
-      container_path: "container",
-      default_wait_seconds: 300,
-      status_timeout_seconds: DEFAULT_STATUS_TIMEOUT_SECONDS,
+      kiac_path: non_empty(parsed.kiac_path, "kiac"),
+      container_path: non_empty(parsed.container_path, "container"),
+      default_wait_seconds: positive(parsed.default_wait_seconds, 300),
+      status_timeout_seconds: positive(
+        parsed.status_timeout_seconds,
+        DEFAULT_STATUS_TIMEOUT_SECONDS,
+      ),
     },
   )
 }
