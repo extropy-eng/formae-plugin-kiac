@@ -531,3 +531,31 @@ fn sdk_delete_gpu_compat() -> Result<(), error> {
   assert seen.contains("gpu compat disable --name dev --namespace default")
   Ok(())
 }
+
+#[test("the SDK create path loads an image")]
+fn sdk_create_image() -> Result<(), error> {
+  let log_file = temp_file("args")?
+  let path = fake_kiac(f"printf '%s\\n' \"$*\" >> {log_file}")?
+  let mut plugin = plugin_with_kiac(path)
+  let request = resource.CreateRequest {
+    ResourceType: TYPE_IMAGE,
+    Label: "",
+    Properties: raw_message(
+      "{
+        \"id\": \"dev/myapp:latest\",
+        \"clusterName\": \"dev\",
+        \"image\": \"myapp:latest\"
+      }",
+    ),
+    TargetConfig: target_for(path),
+  }
+  let result = plugin.Create(context.Background(), &request)?
+  let Some(progress) = result.ProgressResult else {
+    assert false
+    return Ok(())
+  }
+  assert progress.NativeID == "dev/myapp:latest"
+  let seen = read_text(log_file)?
+  assert seen.contains("load image myapp:latest --name dev")
+  Ok(())
+}

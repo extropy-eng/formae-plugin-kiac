@@ -7,6 +7,40 @@ import "go:context"
 import "domain"
 
 impl Application {
+  pub fn create_image(
+    self: mut Ref<Application>,
+    ctx: context.Context,
+    target: domain.TargetConfig,
+    spec: domain.ImageSpec,
+  ) -> Result<CreateOutcome, domain.Failure> {
+    let (base_cluster, base_image) = if spec.cluster_name.is_empty() || spec.image.is_empty() {
+      domain.split_id(spec.id)
+    } else {
+      (spec.cluster_name, spec.image)
+    }
+    let native_id = if spec.id.is_empty() {
+      f"{base_cluster}/{base_image}"
+    } else {
+      spec.id
+    }
+    self.image_loader.load_image(ctx, target, base_cluster, base_image)?
+    Ok(
+      CreateOutcome {
+        native_id,
+        request_id: native_id,
+        status: CreateStatus.Success,
+        message: "",
+        properties: ResourceProperties.Image(
+          domain.Image {
+            id: native_id,
+            cluster_name: base_cluster,
+            image: base_image,
+          },
+        ),
+      },
+    )
+  }
+
   pub fn delete_gpu_compat(
     self: mut Ref<Application>,
     ctx: context.Context,
