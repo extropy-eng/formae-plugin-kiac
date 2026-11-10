@@ -703,3 +703,17 @@ fn update_gpu_compat_disables() -> Result<(), error> {
   assert fake.calls.*.equals(["disable dev/default no-rotate"])
   Ok(())
 }
+
+#[test("deleting GPU compatibility disables it")]
+fn delete_gpu_compat_disables() -> Result<(), error> {
+  let (app, fake) = app_with_fake_gpu()
+  let mut app = app
+  let actual = app.delete_gpu_compat(
+    context.Background(),
+    target(),
+    "dev/default",
+  )?
+  assert actual == DeleteOutcome { native_id: "dev/default", no_op: false }
+  assert fake.calls.*.equals(["disable dev/default no-rotate"])
+  Ok(())
+}

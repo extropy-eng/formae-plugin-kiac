@@ -510,3 +510,24 @@ fn sdk_update_gpu_compat() -> Result<(), error> {
   assert !seen.contains("rotate")
   Ok(())
 }
+
+#[test("the SDK delete path disables GPU compatibility")]
+fn sdk_delete_gpu_compat() -> Result<(), error> {
+  let log_file = temp_file("args")?
+  let path = fake_kiac(f"printf '%s\\n' \"$*\" >> {log_file}")?
+  let mut plugin = plugin_with_kiac(path)
+  let request = resource.DeleteRequest {
+    NativeID: "dev/default",
+    ResourceType: TYPE_GPU_COMPAT,
+    TargetConfig: target_for(path),
+  }
+  let result = plugin.Delete(context.Background(), &request)?
+  let Some(progress) = result.ProgressResult else {
+    assert false
+    return Ok(())
+  }
+  assert progress.Operation == resource.OperationDelete
+  let seen = read_text(log_file)?
+  assert seen.contains("gpu compat disable --name dev --namespace default")
+  Ok(())
+}

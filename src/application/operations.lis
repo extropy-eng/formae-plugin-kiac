@@ -7,6 +7,24 @@ import "go:context"
 import "domain"
 
 impl Application {
+  pub fn delete_gpu_compat(
+    self: mut Ref<Application>,
+    ctx: context.Context,
+    target: domain.TargetConfig,
+    native_id: string,
+  ) -> Result<DeleteOutcome, domain.Failure> {
+    let (cluster_name, namespace) = domain.split_id(native_id)
+    self.gpu_compat.set_gpu_compat(
+      ctx,
+      target,
+      cluster_name,
+      namespace,
+      false,
+      false,
+    )?
+    Ok(DeleteOutcome { native_id, no_op: false })
+  }
+
   pub fn update_gpu_compat(
     self: mut Ref<Application>,
     ctx: context.Context,
