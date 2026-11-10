@@ -51,6 +51,10 @@ fn expect_failure<T>(result: Result<T, domain.Failure>) -> domain.Failure {
   }
 }
 
+fn target_with_fake_kiac(body: string) -> Result<domain.TargetConfig, error> {
+  Ok(domain.TargetConfig { kiac_path: fake_kiac(body)?, .. })
+}
+
 #[test("the runner returns captured stdout")]
 fn runner_returns_captured_stdout() -> Result<(), error> {
   let target = domain.TargetConfig { kiac_path: fake_kiac("echo 'hello'")?, .. }
@@ -113,5 +117,64 @@ fn kiac_cluster_maps_to_domain_cluster() -> Result<(), error> {
     ],
   }
   assert actual.to_domain().equals(expected)
+  Ok(())
+}
+
+#[test("listing clusters maps kiac JSON to domain values")]
+fn listing_clusters_maps_to_domain_values() -> Result<(), error> {
+  let raw = "[
+    {
+      \"name\": \"dev\",
+      \"nodes\": []
+    }
+  ]"
+  let actual = list_clusters(
+    context.Background(),
+    target_with_fake_kiac(f"echo '{raw}'")?,
+  )?
+  let expected = [domain.Cluster { name: "dev", .. }]
+  assert actual.equals(expected)
+  Ok(())
+}
+
+#[test("an empty cluster response is an empty slice")]
+fn empty_cluster_response_is_empty() -> Result<(), error> {
+  let actual = list_clusters(
+    context.Background(),
+    target_with_fake_kiac("printf '[]'")?,
+  )?
+  assert actual.is_empty()
+  Ok(())
+}
+
+#[test("finding a cluster by name returns the matching cluster")]
+fn find_cluster_returns_matching_cluster() -> Result<(), error> {
+  let raw = "[
+    {
+      \"name\": \"dev\",
+      \"nodes\": []
+    }
+  ]"
+  let found = find_cluster(
+    context.Background(),
+    target_with_fake_kiac(f"echo '{raw}'")?,
+    "dev",
+  )?
+  let Some(cluster) = found else {
+    assert false
+    return Ok(())
+  }
+  assert cluster.name == "dev"
+  Ok(())
+}
+
+#[test("finding a missing cluster returns none")]
+fn find_missing_cluster_returns_none() -> Result<(), error> {
+  let found = find_cluster(
+    context.Background(),
+    target_with_fake_kiac("printf '[]'")?,
+    "missing",
+  )?
+  assert found.is_none()
   Ok(())
 }

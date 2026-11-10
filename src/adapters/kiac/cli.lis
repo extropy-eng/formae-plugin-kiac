@@ -1,0 +1,52 @@
+// © 2026 Extropy Engineering
+//
+// SPDX-License-Identifier: MIT
+
+import "go:context"
+import "go:encoding/json"
+import "go:strings"
+
+import "domain"
+
+pub struct KiacCli {}
+
+fn fetch_clusters(
+  ctx: context.Context,
+  target: domain.TargetConfig,
+) -> Result<Slice<KiacCluster>, domain.Failure> {
+  let result = run_kiac(ctx, target, ["get", "clusters", "-o", "json"])?
+  let output = strings.TrimSpace(result.stdout)
+  if output == "" || output == "null" {
+    Ok([])
+  } else {
+    let mut clusters: Slice<KiacCluster> = []
+    json
+      .Unmarshal(output as Slice<byte>, &clusters)
+      .map_err(|e| {
+        domain.fail(
+          domain.ErrorKind.GeneralServiceException,
+          f"parse kiac clusters: {e.Error()}",
+        )
+      })?
+    Ok(clusters)
+  }
+}
+
+pub fn list_clusters(
+  ctx: context.Context,
+  target: domain.TargetConfig,
+) -> Result<Slice<domain.Cluster>, domain.Failure> {
+  fetch_clusters(ctx, target).map(|clusters| clusters.map(
+    |cluster| cluster.to_domain(),
+  ))
+}
+
+pub fn find_cluster(
+  ctx: context.Context,
+  target: domain.TargetConfig,
+  name: string,
+) -> Result<Option<domain.Cluster>, domain.Failure> {
+  fetch_clusters(ctx, target).map(|clusters| clusters
+    .find(|c| c.name == name)
+    .map(|c| c.to_domain()))
+}
