@@ -2,9 +2,12 @@
 //
 // SPDX-License-Identifier: MIT
 
+import "go:context"
 import "go:encoding/json"
+import "go:github.com/platform-engineering-labs/formae/pkg/model"
 import "go:github.com/platform-engineering-labs/formae/pkg/plugin/resource"
 
+import "adapters/kiac"
 import "application"
 import "domain"
 
@@ -216,5 +219,32 @@ fn node_read_properties_include_parent_and_state() -> Result<(), error> {
     image: "img",
     created: "2026-10-04T03:18:35Z",
   }
+  Ok(())
+}
+
+fn plugin_with_kiac(_path: string) -> mut Plugin {
+  let cli = kiac.KiacCli { .. }
+  Plugin.new(application.new(cli, cli, cli, cli, cli, cli))
+}
+
+#[test("the plugin advertises namespace-scoped rate limiting")]
+fn plugin_advertises_namespace_rate_limit() {
+  let plugin = plugin_with_kiac("/bin/true")
+  let rate_limit = plugin.RateLimit()
+  assert rate_limit.Scope == model.RateLimitScopeNamespace
+  assert rate_limit.MaxRequestsPerSecondForNamespace == 1
+}
+
+#[test("an unsupported read resource type is an invalid request")]
+fn unsupported_read_is_invalid_request() -> Result<(), error> {
+  let mut plugin = plugin_with_kiac("/bin/true")
+  let request = resource.ReadRequest {
+    NativeID: "dev",
+    ResourceType: "KIAC::Unknown",
+    TargetConfig: raw_message("{}"),
+    PriorProperties: raw_message(""),
+  }
+  let result = plugin.Read(context.Background(), &request)?
+  assert result.ErrorCode == resource.OperationErrorCodeInvalidRequest
   Ok(())
 }

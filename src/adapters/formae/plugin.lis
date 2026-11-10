@@ -1,0 +1,121 @@
+// © 2026 Extropy Engineering
+//
+// SPDX-License-Identifier: MIT
+
+import "go:context"
+import "go:github.com/platform-engineering-labs/formae/pkg/model"
+import "go:github.com/platform-engineering-labs/formae/pkg/plugin/resource"
+
+import "application"
+import "domain"
+
+pub const TYPE_CLUSTER = "KIAC::Cluster::Cluster"
+
+pub const TYPE_NODE = "KIAC::Cluster::Node"
+
+pub const TYPE_GPU_COMPAT = "KIAC::GPU::Compat"
+
+pub const TYPE_IMAGE = "KIAC::Cluster::Image"
+
+pub const TYPE_VERIFICATION = "KIAC::Cluster::Verification"
+
+pub const TYPE_RESUME = "KIAC::Cluster::Resume"
+
+pub struct Plugin { app: mut application.Application }
+
+fn unsupported(resource_type: string) -> domain.Failure {
+  domain.fail(
+    domain.ErrorKind.InvalidRequest,
+    f"unsupported resource type: {resource_type}",
+  )
+}
+
+impl Plugin {
+  pub fn new(app: mut application.Application) -> mut Plugin {
+    Plugin { app }
+  }
+
+  #[allow(non_snake_case_function)]
+  pub fn RateLimit(self) -> model.RateLimitConfig {
+    model.RateLimitConfig {
+      Scope: model.RateLimitScopeNamespace,
+      MaxRequestsPerSecondForNamespace: 1,
+    }
+  }
+
+  #[allow(non_snake_case_function)]
+  pub fn DiscoveryFilters(self) -> Slice<model.MatchFilter> {
+    []
+  }
+
+  #[allow(non_snake_case_function)]
+  pub fn LabelConfig(self) -> model.LabelConfig {
+    model.LabelConfig { .. }
+  }
+
+  #[allow(non_snake_case_function)]
+  pub fn Create(
+    self: mut Ref<Plugin>,
+    _ctx: context.Context,
+    request: Ref<resource.CreateRequest>,
+  ) -> Result<mut Ref<resource.CreateResult>, error> {
+    Ok(create_failure(unsupported(request.ResourceType)))
+  }
+
+  #[allow(non_snake_case_function)]
+  pub fn Read(
+    self: mut Ref<Plugin>,
+    _ctx: context.Context,
+    request: Ref<resource.ReadRequest>,
+  ) -> Result<mut Ref<resource.ReadResult>, error> {
+    Ok(read_failure(
+      request.ResourceType,
+      unsupported(request.ResourceType).kind,
+    ))
+  }
+
+  #[allow(non_snake_case_function)]
+  pub fn Update(
+    self: mut Ref<Plugin>,
+    _ctx: context.Context,
+    request: Ref<resource.UpdateRequest>,
+  ) -> Result<mut Ref<resource.UpdateResult>, error> {
+    Ok(update_failure(domain.fail(
+      domain.ErrorKind.NotUpdatable,
+      f"unsupported resource type: {request.ResourceType}",
+    )))
+  }
+
+  #[allow(non_snake_case_function)]
+  pub fn Delete(
+    self: mut Ref<Plugin>,
+    _ctx: context.Context,
+    request: Ref<resource.DeleteRequest>,
+  ) -> Result<mut Ref<resource.DeleteResult>, error> {
+    Ok(delete_failure(unsupported(request.ResourceType)))
+  }
+
+  #[allow(non_snake_case_function)]
+  pub fn Status(
+    self: mut Ref<Plugin>,
+    _ctx: context.Context,
+    request: Ref<resource.StatusRequest>,
+  ) -> Result<mut Ref<resource.StatusResult>, error> {
+    Ok(status_result(
+      application.StatusOutcome.Failure {
+        failure: unsupported(request.ResourceType),
+      },
+      request.*,
+      encode_properties,
+    ))
+  }
+
+  #[allow(non_snake_case_function)]
+  pub fn List(
+    self: mut Ref<Plugin>,
+    _ctx: context.Context,
+    _request: Ref<resource.ListRequest>,
+  ) -> Result<mut Ref<resource.ListResult>, error> {
+    Ok(list_result([]))
+  }
+}

@@ -1,0 +1,16 @@
+// © 2026 Extropy Engineering
+//
+// SPDX-License-Identifier: MIT
+
+import "go:github.com/platform-engineering-labs/formae/pkg/plugin/sdk"
+
+import "adapters/formae"
+import "adapters/kiac"
+import "application"
+
+fn main() {
+  let cli = kiac.KiacCli { .. }
+  let mut app = application.new(cli, cli, cli, cli, cli, cli)
+  let mut plugin = formae.Plugin.new(app)
+  sdk.RunWithManifest(&plugin, sdk.RunConfig { .. })
+}

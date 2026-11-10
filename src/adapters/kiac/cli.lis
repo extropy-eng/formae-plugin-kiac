@@ -12,6 +12,23 @@ import "ports"
 pub struct KiacCli {}
 
 impl KiacCli {
+  pub fn list_clusters(
+    self: KiacCli,
+    ctx: context.Context,
+    target: domain.TargetConfig,
+  ) -> Result<Slice<domain.Cluster>, domain.Failure> {
+    list_clusters(ctx, target)
+  }
+
+  pub fn find_cluster(
+    self: KiacCli,
+    ctx: context.Context,
+    target: domain.TargetConfig,
+    name: string,
+  ) -> Result<Option<domain.Cluster>, domain.Failure> {
+    find_cluster(ctx, target, name)
+  }
+
   pub fn start_create_cluster(
     self: KiacCli,
     target: domain.TargetConfig,
