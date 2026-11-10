@@ -1,0 +1,39 @@
+// © 2026 Extropy Engineering
+//
+// SPDX-License-Identifier: MIT
+
+import "go:bytes"
+import "go:context"
+import "go:os/exec"
+import "go:time"
+
+import "domain"
+
+pub struct ProcResult {
+  pub stdout: string,
+}
+
+pub fn run_kiac(
+  ctx: context.Context,
+  target: domain.TargetConfig,
+  args: Slice<string>,
+) -> Result<ProcResult, domain.Failure> {
+  let mut stdout = bytes.Buffer { .. }
+  let mut stderr = bytes.Buffer { .. }
+
+  let mut command = exec.CommandContext(ctx, target.kiac_path, args...)
+  command.Stdout = Some(&stdout)
+  command.Stderr = Some(&stderr)
+
+  // A killed kiac can leave a child holding the output pipes open; without a
+  // wait delay, Wait blocks past the context deadline until that child exits.
+  if ctx.Deadline().is_some() { command.WaitDelay = time.Second }
+
+  match command.Run() {
+    Ok(_) => Ok(ProcResult { stdout: stdout.String() }),
+    Err(err) => {
+      let message = domain.first_non_empty([stderr.String(), err.Error()])
+      Err(domain.fail(classify_error(message), message))
+    },
+  }
+}

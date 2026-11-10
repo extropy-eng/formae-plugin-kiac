@@ -2,6 +2,10 @@
 //
 // SPDX-License-Identifier: MIT
 
+import "go:context"
+import "go:os"
+import "go:path/filepath"
+
 import "domain"
 
 #[test("stderr containing already exists maps to AlreadyExists")]
@@ -29,4 +33,42 @@ fn permission_stderr_maps_to_access_denied() {
 fn unknown_stderr_maps_to_general_service_exception() {
   assert classify_error("unexpected") ==
   domain.ErrorKind.GeneralServiceException
+}
+
+/// Write an executable fake `kiac` and return its absolute path.
+fn fake_kiac(body: string) -> Result<string, error> {
+  let dir = os.MkdirTemp("", "kiac-test")?
+  let path = filepath.Join(dir, "kiac")
+  os.WriteFile(path, (f"#!/bin/sh\n{body}") as Slice<byte>, 0o755)?
+  Ok(path)
+}
+
+fn expect_failure<T>(result: Result<T, domain.Failure>) -> domain.Failure {
+  match result {
+    Err(failure) => failure,
+    Ok(_) => domain.fail(domain.ErrorKind.InternalFailure, "expected failure"),
+  }
+}
+
+#[test("the runner returns captured stdout")]
+fn runner_returns_captured_stdout() -> Result<(), error> {
+  let target = domain.TargetConfig { kiac_path: fake_kiac("echo 'hello'")?, .. }
+  let actual = run_kiac(context.Background(), target, [])?
+  assert actual == ProcResult { stdout: "hello\n" }
+  Ok(())
+}
+
+#[test("a failing runner returns the classified stderr failure")]
+fn runner_returns_classified_stderr() -> Result<(), error> {
+  let target = domain.TargetConfig {
+    kiac_path: fake_kiac("echo 'cluster not found' >&2; exit 1")?,
+    ..,
+  }
+  let failure = expect_failure(run_kiac(context.Background(), target, []))
+  assert failure ==
+  domain.Failure {
+    kind: domain.ErrorKind.NotFound,
+    message: "cluster not found",
+  }
+  Ok(())
 }
