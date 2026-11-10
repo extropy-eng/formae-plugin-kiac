@@ -1,0 +1,11 @@
+// © 2026 Extropy Engineering
+//
+// SPDX-License-Identifier: MIT
+
+import "go:time"
+
+pub struct ProcessSnapshot {
+  pub done: bool,
+  pub error: Option<string>,
+  pub started_at: time.Time,
+}

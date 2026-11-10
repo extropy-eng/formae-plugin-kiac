@@ -1,0 +1,10 @@
+// © 2026 Extropy Engineering
+//
+// SPDX-License-Identifier: MIT
+
+pub struct TargetConfig {
+  pub kiac_path: string,
+  pub container_path: string,
+  pub default_wait_seconds: int,
+  pub status_timeout_seconds: int,
+}

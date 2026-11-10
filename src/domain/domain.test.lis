@@ -24,3 +24,24 @@ fn failure_preserves_kind_and_message() {
   let expected = Failure { kind: ErrorKind.NotFound, message: "cluster not found: dev" }
   assert actual == expected
 }
+
+#[test("cluster equality includes nested node values")]
+fn cluster_equality_includes_nodes() {
+  let node = Node {
+    name: "cp",
+    state: "running",
+    ip: "10.0.0.1",
+    image: "img",
+    created: "2026-10-04T03:18:35Z",
+  }
+  let actual = Cluster {
+    name: "dev",
+    status: "1/1 running",
+    running_nodes: 1,
+    total_nodes: 1,
+    k8s_version: "v1.37.0-k3s1",
+    created: "2026-10-04T03:18:35Z",
+    nodes: [node],
+  }
+  assert actual.equals(Cluster { nodes: [node], ..actual })
+}

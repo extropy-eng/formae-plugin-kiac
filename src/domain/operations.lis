@@ -1,0 +1,68 @@
+// © 2026 Extropy Engineering
+//
+// SPDX-License-Identifier: MIT
+
+pub struct GpuCompat {
+  pub id: string,
+  pub cluster_name: string,
+  pub namespace: string,
+  pub enabled: bool,
+}
+
+pub struct GpuCompatState {
+  pub id: string,
+  pub cluster_name: string,
+  pub namespace: string,
+}
+
+pub struct GpuCompatSpec {
+  pub id: string,
+  pub cluster_name: string,
+  pub namespace: string,
+  pub enabled: bool,
+  pub rotate_certificate: bool,
+}
+
+pub struct Image {
+  pub id: string,
+  pub cluster_name: string,
+  pub image: string,
+}
+
+pub struct ImageSpec {
+  pub id: string,
+  pub cluster_name: string,
+  pub image: string,
+}
+
+pub struct Check {
+  pub id: string,
+  pub name: string,
+  pub status: string,
+  pub detail: string,
+}
+
+#[equality]
+pub struct Verification {
+  pub cluster_name: string,
+  pub healthy: bool,
+  pub checked_at: string,
+  pub duration: string,
+  pub checks: Slice<Check>,
+}
+
+pub struct VerificationSpec {
+  pub cluster_name: string,
+}
+
+pub struct Resume {
+  pub id: string,
+  pub cluster_name: string,
+  pub nonce: string,
+}
+
+pub struct ResumeSpec {
+  pub id: string,
+  pub cluster_name: string,
+  pub nonce: string,
+}

@@ -1,0 +1,57 @@
+// © 2026 Extropy Engineering
+//
+// SPDX-License-Identifier: MIT
+
+pub struct MountSpec {
+  pub source: string,
+  pub target: string,
+  pub readonly: bool,
+}
+
+pub struct PortMappingSpec {
+  pub host_ip: string,
+  pub host_port: int,
+  pub container_port: int,
+  pub protocol: string,
+}
+
+pub struct NodeSpec {
+  pub id: string,
+  pub cluster_name: string,
+  pub name: string,
+  pub state: string,
+}
+
+pub struct Node {
+  pub name: string,
+  pub state: string,
+  pub ip: string,
+  pub image: string,
+  pub created: string,
+}
+
+#[equality]
+pub struct Cluster {
+  pub name: string,
+  pub status: string,
+  pub running_nodes: int,
+  pub total_nodes: int,
+  pub k8s_version: string,
+  pub created: string,
+  pub nodes: Slice<Node>,
+}
+
+#[equality]
+pub struct ClusterSpec {
+  pub name: string,
+  pub distro: string,
+  pub cni: string,
+  pub workers: int,
+  pub gpu_workers: int,
+  pub gpu_image: string,
+  pub gateway: bool,
+  pub no_lb: bool,
+  pub dns: Slice<string>,
+  pub mounts: Slice<MountSpec>,
+  pub publish: Slice<PortMappingSpec>,
+}
