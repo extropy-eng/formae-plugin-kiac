@@ -1,0 +1,43 @@
+// © 2026 Extropy Engineering
+//
+// SPDX-License-Identifier: MIT
+
+import "go:sync"
+
+import "ports"
+
+pub struct Operation {
+  pub cluster: string,
+  pub handle: ports.OperationHandle,
+}
+
+pub struct OperationRegistry {
+  operations: mut Map<string, Operation>,
+  lock: sync.Mutex,
+}
+
+impl OperationRegistry {
+  pub fn new() -> mut OperationRegistry {
+    OperationRegistry {
+      operations: Map.new<string, Operation>(),
+      lock: sync.Mutex { .. },
+    }
+  }
+
+  pub fn put(
+    self: mut Ref<OperationRegistry>,
+    cluster: string,
+    handle: ports.OperationHandle,
+  ) {
+    self.lock.Lock()
+    self.operations[cluster] = Operation { cluster, handle }
+    self.lock.Unlock()
+  }
+
+  pub fn get(self: mut Ref<OperationRegistry>, id: string) -> Option<Operation> {
+    self.lock.Lock()
+    let found = self.operations.get(id)
+    self.lock.Unlock()
+    found
+  }
+}
