@@ -39,7 +39,10 @@ fn registry_returns_none_for_unknown_cluster() {
   assert registry.get("missing").is_none()
 }
 
-struct FakeClusterReader { clusters: Slice<domain.Cluster> }
+struct FakeClusterReader {
+  clusters: Slice<domain.Cluster>,
+  start_calls: Slice<string>,
+}
 
 impl FakeClusterReader {
   fn list_clusters(
@@ -149,7 +152,7 @@ impl FakeVerifier {
 
 fn app_with_clusters(clusters: Slice<domain.Cluster>) -> mut Application {
   new(
-    FakeClusterReader { clusters },
+    FakeClusterReader { clusters, start_calls: [] },
     FakeLifecycle { .. },
     FakeNodePower { .. },
     FakeImageLoader { .. },
@@ -230,4 +233,62 @@ fn list_clusters_returns_native_ids() -> Result<(), error> {
   let actual = app.list_clusters(context.Background(), target())?
   assert actual.equals(["dev"])
   Ok(())
+}
+
+fn app_with_ports(fake: FakeClusterReader) -> mut Application {
+  new(
+    fake,
+    FakeLifecycle { .. },
+    FakeNodePower { .. },
+    FakeImageLoader { .. },
+    FakeGpuCompat { .. },
+    FakeVerifier { .. },
+  )
+}
+
+#[test("creating an existing cluster is idempotent")]
+fn create_existing_cluster_is_idempotent() -> Result<(), error> {
+  let fake = FakeClusterReader { clusters: [ready_cluster()], .. }
+  let mut app = app_with_ports(fake)
+  let actual = app.create_cluster(
+    context.Background(),
+    target(),
+    domain.ClusterSpec { name: "dev", .. },
+  )?
+  let expected = CreateOutcome {
+    native_id: "dev",
+    request_id: "dev",
+    status: CreateStatus.Success,
+    message: "",
+    properties: ResourceProperties.Cluster(ready_cluster()),
+  }
+  assert actual.equals(expected)
+  assert fake.start_calls.is_empty()
+  Ok(())
+}
+
+#[test("creating a missing cluster starts an operation")]
+fn create_missing_cluster_starts_operation() -> Result<(), error> {
+  let fake = FakeClusterReader { clusters: [], .. }
+  let mut app = app_with_ports(fake)
+  let actual = app.create_cluster(
+    context.Background(),
+    target(),
+    domain.ClusterSpec { name: "dev", .. },
+  )?
+  assert actual.native_id == "dev"
+  assert actual.status == CreateStatus.InProgress
+  assert app.ops.get("dev").is_some()
+  Ok(())
+}
+
+#[test("creating a cluster requires a name")]
+fn create_cluster_requires_name() {
+  let mut app = app_with_clusters([])
+  let failure = expect_failure(app.create_cluster(
+    context.Background(),
+    target(),
+    domain.ClusterSpec { .. },
+  ))
+  assert failure.kind == domain.ErrorKind.InvalidRequest
 }

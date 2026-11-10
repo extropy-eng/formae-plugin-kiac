@@ -31,4 +31,42 @@ impl Application {
       .list_clusters(ctx, target)
       .map(|clusters| clusters.map(|cluster| cluster.name))
   }
+
+  pub fn create_cluster(
+    self: mut Ref<Application>,
+    ctx: context.Context,
+    target: domain.TargetConfig,
+    spec: domain.ClusterSpec,
+  ) -> Result<CreateOutcome, domain.Failure> {
+    if spec.name.is_empty() {
+      return Err(domain.fail(
+        domain.ErrorKind.InvalidRequest,
+        "name is required",
+      ))
+    }
+    match self.reader.find_cluster(ctx, target, spec.name)? {
+      Some(cluster) => Ok(
+        CreateOutcome {
+          native_id: cluster.name,
+          request_id: cluster.name,
+          status: CreateStatus.Success,
+          message: "",
+          properties: ResourceProperties.Cluster(cluster),
+        },
+      ),
+      None => {
+        let handle = self.lifecycle.start_create_cluster(target, spec)
+        self.ops.put(spec.name, handle)
+        Ok(
+          CreateOutcome {
+            native_id: spec.name,
+            request_id: spec.name,
+            status: CreateStatus.InProgress,
+            message: f"creating cluster {spec.name}",
+            properties: ResourceProperties.None,
+          },
+        )
+      },
+    }
+  }
 }
