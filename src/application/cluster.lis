@@ -21,4 +21,14 @@ impl Application {
       )),
     }
   }
+
+  pub fn list_clusters(
+    self: mut Ref<Application>,
+    ctx: context.Context,
+    target: domain.TargetConfig,
+  ) -> Result<Slice<string>, domain.Failure> {
+    self.reader
+      .list_clusters(ctx, target)
+      .map(|clusters| clusters.map(|cluster| cluster.name))
+  }
 }

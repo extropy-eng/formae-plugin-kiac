@@ -130,9 +130,21 @@ impl Plugin {
   #[allow(non_snake_case_function)]
   pub fn List(
     self: mut Ref<Plugin>,
-    _ctx: context.Context,
-    _request: Ref<resource.ListRequest>,
+    ctx: context.Context,
+    request: Ref<resource.ListRequest>,
   ) -> Result<mut Ref<resource.ListResult>, error> {
-    Ok(list_result([]))
+    match request.ResourceType {
+      TYPE_CLUSTER => {
+        let target = match parse_target(request.TargetConfig) {
+          Ok(target) => target,
+          Err(_) => return Ok(list_result([])),
+        }
+        match self.app.list_clusters(ctx, target) {
+          Ok(ids) => Ok(list_result(ids)),
+          Err(_) => Ok(list_result([])),
+        }
+      },
+      _ => Ok(list_result([])),
+    }
   }
 }

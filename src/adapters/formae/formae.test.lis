@@ -289,3 +289,21 @@ fn fake_kiac(body: string) -> Result<string, error> {
   os.WriteFile(path, (f"#!/bin/sh\n{body}") as Slice<byte>, 0o755)?
   Ok(path)
 }
+
+#[test("the SDK list path returns cluster native ids")]
+fn sdk_list_returns_cluster_ids() -> Result<(), error> {
+  let raw = "[
+    {\"name\": \"a\", \"nodes\": []},
+    {\"name\": \"b\", \"nodes\": []}
+  ]"
+  let path = fake_kiac(f"echo '{raw}'")?
+  let mut plugin = plugin_with_kiac(path)
+  let request = resource.ListRequest {
+    ResourceType: TYPE_CLUSTER,
+    TargetConfig: target_for(path),
+    ..,
+  }
+  let result = plugin.List(context.Background(), &request)?
+  assert result.NativeIDs.equals(["a", "b"])
+  Ok(())
+}
