@@ -331,6 +331,37 @@ fn loading_image_runs_load() -> Result<(), error> {
   Ok(())
 }
 
+#[test("GPU compatibility enable includes certificate rotation")]
+fn gpu_compat_enable_includes_rotation() {
+  let actual = gpu_compat_args("enable", "dev", "default", true)
+  let expected = [
+    "gpu",
+    "compat",
+    "enable",
+    "--name",
+    "dev",
+    "--namespace",
+    "default",
+    "--rotate-certificate",
+  ]
+  assert actual.equals(expected)
+}
+
+#[test("GPU compatibility disable never rotates the certificate")]
+fn gpu_compat_disable_omits_rotation() {
+  let actual = gpu_compat_args("disable", "dev", "default", true)
+  let expected = [
+    "gpu",
+    "compat",
+    "disable",
+    "--name",
+    "dev",
+    "--namespace",
+    "default",
+  ]
+  assert actual.equals(expected)
+}
+
 #[test("cluster argv includes GPU, boolean, mount, and publish flags")]
 fn cluster_argv_includes_all_optional_flags() {
   let actual = cluster_create_args(

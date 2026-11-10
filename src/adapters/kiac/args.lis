@@ -11,6 +11,25 @@ pub fn node_power_verb(power: domain.NodePower) -> string {
   }
 }
 
+pub fn gpu_compat_args(
+  verb: string,
+  cluster: string,
+  namespace: string,
+  rotate: bool,
+) -> Slice<string> {
+  let mut args = [
+    "gpu",
+    "compat",
+    verb,
+    "--name",
+    cluster,
+    "--namespace",
+    namespace,
+  ]
+  if rotate && verb == "enable" { args = args.append("--rotate-certificate") }
+  args
+}
+
 pub fn cluster_create_args(spec: domain.ClusterSpec) -> Slice<string> {
   let mut args = ["create", "cluster", "--name", spec.name]
 

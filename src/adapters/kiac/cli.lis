@@ -67,6 +67,21 @@ impl KiacCli {
       |_| (),
     )
   }
+
+  pub fn set_gpu_compat(
+    self: KiacCli,
+    ctx: context.Context,
+    target: domain.TargetConfig,
+    cluster: string,
+    namespace: string,
+    enabled: bool,
+    rotate: bool,
+  ) -> Result<(), domain.Failure> {
+    let verb = if enabled { "enable" } else { "disable" }
+    run_kiac(ctx, target, gpu_compat_args(verb, cluster, namespace, rotate)).map(
+      |_| (),
+    )
+  }
 }
 
 fn fetch_clusters(
