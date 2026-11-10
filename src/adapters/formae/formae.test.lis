@@ -902,3 +902,101 @@ fn sdk_update_node() -> Result<(), error> {
   assert seen.contains("stop node kiac-dev-worker-1 --name dev")
   Ok(())
 }
+
+#[test("cluster property names decode from camel case")]
+fn cluster_property_names_decode() -> Result<(), error> {
+  let spec = decode_cluster_props(raw_message(
+    "{
+      \"name\": \"dev\",
+      \"distro\": \"kubeadm\",
+      \"gpuWorkers\": 2,
+      \"gpuImage\": \"gpu:latest\",
+      \"noLb\": true,
+      \"dns\": [\"1.1.1.1\"],
+      \"mounts\": [
+        {
+          \"source\": \"/a\",
+          \"target\": \"/b\",
+          \"readonly\": true
+        }
+      ],
+      \"publish\": [
+        {
+          \"hostIp\": \"127.0.0.1\",
+          \"hostPort\": 8080,
+          \"containerPort\": 80,
+          \"protocol\": \"tcp\"
+        }
+      ]
+    }",
+  ))?
+  assert spec.equals(
+    domain.ClusterSpec {
+      name: "dev",
+      distro: "kubeadm",
+      gpu_workers: 2,
+      gpu_image: "gpu:latest",
+      no_lb: true,
+      dns: ["1.1.1.1"],
+      mounts: [domain.MountSpec { source: "/a", target: "/b", readonly: true }],
+      publish: [
+        domain.PortMappingSpec {
+          host_ip: "127.0.0.1",
+          host_port: 8080,
+          container_port: 80,
+          protocol: "tcp",
+        },
+      ],
+      ..,
+    },
+  )
+  Ok(())
+}
+
+#[test("GPU compatibility names decode")]
+fn gpu_compat_names_decode() -> Result<(), error> {
+  let gpu = decode_gpu_compat(raw_message(
+    "{
+      \"clusterName\": \"dev\",
+      \"namespace\": \"default\",
+      \"enabled\": true,
+      \"rotateCertificate\": true
+    }",
+  ))?
+  assert gpu.rotate_certificate
+  Ok(())
+}
+
+#[test("image names decode")]
+fn image_names_decode() -> Result<(), error> {
+  let image = decode_image(raw_message(
+    "{
+      \"id\": \"dev/app: 1\",
+      \"clusterName\": \"dev\",
+      \"image\": \"app:1\"
+    }",
+  ))?
+  assert image.cluster_name == "dev"
+  Ok(())
+}
+
+#[test("verification names decode")]
+fn verification_names_decode() {
+  let verification = decode_verification(raw_message(
+    "{ \"clusterName\": \"dev\" }",
+  ))
+  assert verification.cluster_name == "dev"
+}
+
+#[test("resume names decode")]
+fn resume_names_decode() -> Result<(), error> {
+  let resume = decode_resume(raw_message(
+    "{
+      \"id\": \"dev/n1\",
+      \"clusterName\": \"dev\",
+      \"nonce\": \"n1\"
+    }",
+  ))?
+  assert resume.nonce == "n1"
+  Ok(())
+}
