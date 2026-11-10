@@ -17,3 +17,10 @@ fn first_non_empty_skips_blanks() {
   let values = [" ", "", " cluster not found "]
   assert first_non_empty(values) == "cluster not found"
 }
+
+#[test("a failure preserves its error kind and message")]
+fn failure_preserves_kind_and_message() {
+  let actual = fail(ErrorKind.NotFound, "cluster not found: dev")
+  let expected = Failure { kind: ErrorKind.NotFound, message: "cluster not found: dev" }
+  assert actual == expected
+}

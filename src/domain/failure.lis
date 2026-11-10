@@ -1,0 +1,31 @@
+// © 2026 Extropy Engineering
+//
+// SPDX-License-Identifier: MIT
+
+pub enum ErrorKind {
+  InvalidRequest,
+  NotFound,
+  DependencyFailure,
+  AlreadyExists,
+  ServiceTimeout,
+  AccessDenied,
+  GeneralServiceException,
+  NotUpdatable,
+  InternalFailure,
+}
+
+#[allow(unused_struct_field)]
+pub struct Failure {
+  pub kind: ErrorKind,
+  pub message: string,
+}
+
+impl Failure {
+  pub fn Error(self) -> string {
+    self.message
+  }
+}
+
+pub fn fail(kind: ErrorKind, message: string) -> Failure {
+  Failure { kind, message }
+}
