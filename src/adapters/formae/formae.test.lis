@@ -2,6 +2,7 @@
 //
 // SPDX-License-Identifier: MIT
 
+import "go:encoding/json"
 import "go:github.com/platform-engineering-labs/formae/pkg/plugin/resource"
 
 import "application"
@@ -141,4 +142,79 @@ fn malformed_node_properties_are_invalid() {
   let failure = expect_failure(decode_node_props(raw_message("{")))
   assert failure.kind == domain.ErrorKind.InvalidRequest
   assert failure.message.contains("invalid properties:")
+}
+
+fn ready_cluster() -> domain.Cluster {
+  domain.Cluster {
+    name: "dev",
+    status: "2/2 running",
+    running_nodes: 2,
+    total_nodes: 2,
+    k8s_version: "v1.37.0-k3s1",
+    created: "2026-10-04T03:18:35Z",
+    nodes: [],
+  }
+}
+
+#[test("cluster read properties include observed fields")]
+fn cluster_read_properties_include_observed_fields() -> Result<(), error> {
+  let text = encode_properties(application.ResourceProperties.Cluster(
+    ready_cluster(),
+  ))
+  let mut actual: ClusterOutput = ClusterOutput { .. }
+  json.Unmarshal(text as Slice<byte>, &actual)?
+  let expected = ClusterOutput {
+    name: "dev",
+    status: "2/2 running",
+    running_nodes: 2,
+    total_nodes: 2,
+    installed_k8s_version: "v1.37.0-k3s1",
+    created: "2026-10-04T03:18:35Z",
+    nodes: [],
+  }
+  assert actual.equals(expected)
+  Ok(())
+}
+
+#[test("GPU compatibility read properties omit write-only fields")]
+fn gpu_compat_read_omits_write_only_fields() {
+  let text = encode_properties(application.ResourceProperties.GpuCompatState(
+    domain.GpuCompatState {
+      id: "dev/default",
+      cluster_name: "dev",
+      namespace: "default",
+    },
+  ))
+  assert text.contains("\"namespace\":\"default\"")
+  assert !text.contains("enabled")
+  assert !text.contains("rotateCertificate")
+}
+
+#[test("node read properties include the parent cluster and node state")]
+fn node_read_properties_include_parent_and_state() -> Result<(), error> {
+  let text = encode_properties(
+    application.ResourceProperties.Node {
+      cluster: "dev",
+      node: domain.Node {
+        name: "cp",
+        state: "running",
+        ip: "10.0.0.1",
+        image: "img",
+        created: "2026-10-04T03:18:35Z",
+      },
+    },
+  )
+  let mut actual: NodeOutput = NodeOutput { .. }
+  json.Unmarshal(text as Slice<byte>, &actual)?
+  assert actual ==
+  NodeOutput {
+    id: "dev/cp",
+    cluster_name: "dev",
+    name: "cp",
+    state: "running",
+    ip: "10.0.0.1",
+    image: "img",
+    created: "2026-10-04T03:18:35Z",
+  }
+  Ok(())
 }

@@ -4,7 +4,160 @@
 
 import "go:encoding/json"
 
+import "application"
 import "domain"
+
+#[json(camel_case)]
+#[equality]
+pub struct NodeOutput {
+  pub id: string,
+  pub cluster_name: string,
+  pub name: string,
+  pub state: string,
+  pub ip: string,
+  pub image: string,
+  pub created: string,
+}
+
+#[json(camel_case)]
+#[equality]
+pub struct ClusterOutput {
+  pub name: string,
+  pub status: string,
+  pub running_nodes: int,
+  pub total_nodes: int,
+  pub installed_k8s_version: string,
+  pub created: string,
+  pub nodes: Slice<NodeOutput>,
+}
+
+#[json(camel_case)]
+pub struct GpuCompatOutput {
+  pub id: string,
+  pub cluster_name: string,
+  pub namespace: string,
+  pub enabled: bool,
+  pub rotate_certificate: bool,
+}
+
+#[json(camel_case)]
+pub struct GpuCompatStateOutput {
+  pub id: string,
+  pub cluster_name: string,
+  pub namespace: string,
+}
+
+#[json(camel_case)]
+pub struct ImageOutput {
+  pub id: string,
+  pub cluster_name: string,
+  pub image: string,
+}
+
+#[json(camel_case)]
+pub struct CheckOutput {
+  pub id: string,
+  pub name: string,
+  pub status: string,
+  pub detail: string,
+}
+
+#[json(camel_case)]
+pub struct VerificationOutput {
+  pub cluster_name: string,
+  pub healthy: bool,
+  pub checked_at: string,
+  pub duration: string,
+  pub checks: Slice<CheckOutput>,
+}
+
+#[json(camel_case)]
+pub struct ResumeOutput {
+  pub id: string,
+  pub cluster_name: string,
+  pub nonce: string,
+}
+
+fn encode<T>(value: T) -> string {
+  json.Marshal(value).map_or("", |text| text as string)
+}
+
+fn node_output(cluster: string, node: domain.Node) -> NodeOutput {
+  NodeOutput {
+    id: f"{cluster}/{node.name}",
+    cluster_name: cluster,
+    name: node.name,
+    state: node.state,
+    ip: node.ip,
+    image: node.image,
+    created: node.created,
+  }
+}
+
+pub fn encode_properties(props: application.ResourceProperties) -> string {
+  match props {
+    application.ResourceProperties.None => "",
+    application.ResourceProperties.Cluster(cluster) => encode(
+      ClusterOutput {
+        name: cluster.name,
+        status: cluster.status,
+        running_nodes: cluster.running_nodes,
+        total_nodes: cluster.total_nodes,
+        installed_k8s_version: cluster.k8s_version,
+        created: cluster.created,
+        nodes: cluster.nodes.map(|node| node_output(cluster.name, node)),
+      },
+    ),
+    application.ResourceProperties.Node { cluster, node } => encode(node_output(
+      cluster,
+      node,
+    )),
+    application.ResourceProperties.GpuCompat(gpu) => encode(
+      GpuCompatOutput {
+        id: gpu.id,
+        cluster_name: gpu.cluster_name,
+        namespace: gpu.namespace,
+        enabled: gpu.enabled,
+        rotate_certificate: false,
+      },
+    ),
+    application.ResourceProperties.GpuCompatState(state) => encode(
+      GpuCompatStateOutput {
+        id: state.id,
+        cluster_name: state.cluster_name,
+        namespace: state.namespace,
+      },
+    ),
+    application.ResourceProperties.Image(image) => encode(
+      ImageOutput {
+        id: image.id,
+        cluster_name: image.cluster_name,
+        image: image.image,
+      },
+    ),
+    application.ResourceProperties.Verification(verification) => encode(
+      VerificationOutput {
+        cluster_name: verification.cluster_name,
+        healthy: verification.healthy,
+        checked_at: verification.checked_at,
+        duration: verification.duration,
+        checks: verification.checks.map(|check| CheckOutput {
+          id: check.id,
+          name: check.name,
+          status: check.status,
+          detail: check.detail,
+        }),
+      },
+    ),
+    application.ResourceProperties.Resume(resume) => encode(
+      ResumeOutput {
+        id: resume.id,
+        cluster_name: resume.cluster_name,
+        nonce: resume.nonce,
+      },
+    ),
+  }
+}
 
 #[json(camel_case)]
 struct MountPropsRaw { source: string, target: string, readonly: bool }
