@@ -1,0 +1,58 @@
+// © 2026 Extropy Engineering
+//
+// SPDX-License-Identifier: MIT
+
+import "go:context"
+
+import "domain"
+
+fn split_node(spec: domain.NodeSpec) -> (string, string) {
+  if !spec.cluster_name.is_empty() && !spec.name.is_empty() {
+    (spec.cluster_name, spec.name)
+  } else {
+    domain.split_id(spec.id)
+  }
+}
+
+impl Application {
+  pub fn create_node(
+    self: mut Ref<Application>,
+    ctx: context.Context,
+    target: domain.TargetConfig,
+    spec: domain.NodeSpec,
+  ) -> Result<CreateOutcome, domain.Failure> {
+    let (cluster_name, node_name) = split_node(spec)
+    let parent = match self.reader.find_cluster(ctx, target, cluster_name)? {
+      Some(parent) => parent,
+      None => {
+        return Err(domain.fail(
+          domain.ErrorKind.DependencyFailure,
+          f"parent cluster not found: {cluster_name}",
+        ))
+      },
+    }
+    let node = match parent.nodes.find(|node| node.name == node_name) {
+      Some(node) => node,
+      None => {
+        return Err(domain.fail(
+          domain.ErrorKind.NotFound,
+          f"node not found: {cluster_name}/{node_name}",
+        ))
+      },
+    }
+    let native_id = if spec.id.is_empty() {
+      f"{cluster_name}/{node_name}"
+    } else {
+      spec.id
+    }
+    Ok(
+      CreateOutcome {
+        native_id,
+        request_id: native_id,
+        status: CreateStatus.Success,
+        message: "",
+        properties: ResourceProperties.Node { cluster: cluster_name, node },
+      },
+    )
+  }
+}
