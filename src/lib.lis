@@ -4,7 +4,6 @@
 
 import "go:encoding/json"
 import "go:github.com/platform-engineering-labs/formae/pkg/plugin/resource"
-import "go:strings"
 
 fn raw_message(text: string) -> mut json.RawMessage {
   let mut encoded = (text as Slice<byte>).clone()
@@ -25,10 +24,3 @@ fn fail(code: resource.OperationErrorCode, message: string) -> Failure {
   Failure { code, message }
 }
 
-fn first_non_empty(values: Slice<string>) -> string {
-  for value in values {
-    let trimmed = strings.TrimSpace(value)
-    if trimmed != "" { return trimmed }
-  }
-  ""
-}

@@ -11,3 +11,9 @@ fn split_id_on_first_slash() {
 fn split_id_without_slash() {
   assert split_id("dev") == ("", "dev")
 }
+
+#[test("first_non_empty skips blanks and trims the winner")]
+fn first_non_empty_skips_blanks() {
+  let values = [" ", "", " cluster not found "]
+  assert first_non_empty(values) == "cluster not found"
+}

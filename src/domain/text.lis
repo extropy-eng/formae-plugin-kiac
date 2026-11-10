@@ -1,0 +1,13 @@
+// © 2026 Extropy Engineering
+//
+// SPDX-License-Identifier: MIT
+
+import "go:strings"
+
+pub fn first_non_empty(values: Slice<string>) -> string {
+  for value in values {
+    let trimmed = strings.TrimSpace(value)
+    if trimmed != "" { return trimmed }
+  }
+  ""
+}
