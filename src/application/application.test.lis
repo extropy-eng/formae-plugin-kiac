@@ -292,3 +292,69 @@ fn create_cluster_requires_name() {
   ))
   assert failure.kind == domain.ErrorKind.InvalidRequest
 }
+
+struct RecordingLifecycle { deleted: mut Ref<mut Slice<string>> }
+
+impl RecordingLifecycle {
+  fn start_create_cluster(
+    self: RecordingLifecycle,
+    _target: domain.TargetConfig,
+    _spec: domain.ClusterSpec,
+  ) -> ports.OperationHandle {
+    FakeHandle { .. }
+  }
+
+  fn start_resume_cluster(
+    self: RecordingLifecycle,
+    _target: domain.TargetConfig,
+    _cluster: string,
+  ) -> ports.OperationHandle {
+    FakeHandle { .. }
+  }
+
+  fn delete_cluster(
+    self: mut Ref<RecordingLifecycle>,
+    _ctx: context.Context,
+    _target: domain.TargetConfig,
+    name: string,
+  ) -> Result<(), domain.Failure> {
+    self.deleted.* = self.deleted.*.append(name)
+    Ok(())
+  }
+}
+
+fn app_with_cluster_lifecycle(
+  clusters: Slice<domain.Cluster>,
+) -> (mut Application, RecordingLifecycle) {
+  let mut deleted: Slice<string> = []
+  let mut lifecycle = RecordingLifecycle { deleted: &deleted }
+  (
+    new(
+      FakeClusterReader { clusters, start_calls: [] },
+      &lifecycle,
+      FakeNodePower { .. },
+      FakeImageLoader { .. },
+      FakeGpuCompat { .. },
+      FakeVerifier { .. },
+    ),
+    lifecycle,
+  )
+}
+
+#[test("deleting a missing cluster succeeds")]
+fn delete_missing_cluster_succeeds() -> Result<(), error> {
+  let mut app = app_with_clusters([])
+  let actual = app.delete_cluster(context.Background(), target(), "gone")?
+  assert actual == DeleteOutcome { native_id: "gone", no_op: false }
+  Ok(())
+}
+
+#[test("deleting an existing cluster invokes the lifecycle port")]
+fn delete_existing_cluster_invokes_lifecycle() -> Result<(), error> {
+  let (app, fake) = app_with_cluster_lifecycle([ready_cluster()])
+  let mut app = app
+  let actual = app.delete_cluster(context.Background(), target(), "dev")?
+  assert actual == DeleteOutcome { native_id: "dev", no_op: false }
+  assert fake.deleted.*.equals(["dev"])
+  Ok(())
+}

@@ -122,10 +122,22 @@ impl Plugin {
   #[allow(non_snake_case_function)]
   pub fn Delete(
     self: mut Ref<Plugin>,
-    _ctx: context.Context,
+    ctx: context.Context,
     request: Ref<resource.DeleteRequest>,
   ) -> Result<mut Ref<resource.DeleteResult>, error> {
-    Ok(delete_failure(unsupported(request.ResourceType)))
+    match request.ResourceType {
+      TYPE_CLUSTER => {
+        let target = match parse_target(request.TargetConfig) {
+          Ok(target) => target,
+          Err(failure) => return Ok(delete_failure(failure)),
+        }
+        match self.app.delete_cluster(ctx, target, request.NativeID) {
+          Ok(outcome) => Ok(delete_result(outcome)),
+          Err(failure) => Ok(delete_failure(failure)),
+        }
+      },
+      _ => Ok(delete_failure(unsupported(request.ResourceType))),
+    }
   }
 
   #[allow(non_snake_case_function)]

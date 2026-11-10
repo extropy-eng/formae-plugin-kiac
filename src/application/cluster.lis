@@ -69,4 +69,15 @@ impl Application {
       },
     }
   }
+
+  pub fn delete_cluster(
+    self: mut Ref<Application>,
+    ctx: context.Context,
+    target: domain.TargetConfig,
+    native_id: string,
+  ) -> Result<DeleteOutcome, domain.Failure> {
+    let existing = self.reader.find_cluster(ctx, target, native_id)?.is_some()
+    if existing { self.lifecycle.delete_cluster(ctx, target, native_id)? }
+    Ok(DeleteOutcome { native_id, no_op: false })
+  }
 }
