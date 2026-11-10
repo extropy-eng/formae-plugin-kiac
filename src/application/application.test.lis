@@ -3,6 +3,7 @@
 // SPDX-License-Identifier: MIT
 
 import "go:context"
+import "go:time"
 
 import "domain"
 import "ports"
@@ -908,4 +909,73 @@ fn delete_resume_is_noop() -> Result<(), error> {
   let actual = app.delete_resume("dev/n1")?
   assert actual == DeleteOutcome { native_id: "dev/n1", no_op: true }
   Ok(())
+}
+
+struct FailingReader {}
+
+impl FailingReader {
+  fn list_clusters(
+    self: FailingReader,
+    _ctx: context.Context,
+    _target: domain.TargetConfig,
+  ) -> Result<Slice<domain.Cluster>, domain.Failure> {
+    Err(unreachable())
+  }
+
+  fn find_cluster(
+    self: FailingReader,
+    _ctx: context.Context,
+    _target: domain.TargetConfig,
+    _name: string,
+  ) -> Result<Option<domain.Cluster>, domain.Failure> {
+    Err(unreachable())
+  }
+}
+
+fn unreachable() -> domain.Failure {
+  domain.fail(domain.ErrorKind.GeneralServiceException, "unreachable")
+}
+
+fn app_with_kiac_reader_failure() -> mut Application {
+  new(
+    FailingReader { .. },
+    FakeLifecycle { .. },
+    FakeNodePower { .. },
+    FakeImageLoader { .. },
+    FakeGpuCompat { .. },
+    FakeVerifier { .. },
+  )
+}
+
+#[test("a busy cluster past its convergence deadline times out")]
+fn busy_cluster_past_deadline_times_out() {
+  let mut app = app_with_clusters([busy_cluster()])
+  app.ops.put(
+    "dev",
+    FakeHandle {
+      state: domain.ProcessSnapshot {
+        done: false,
+        error: None,
+        started_at: time.Now().Add(-time.Hour),
+      },
+      ..,
+    },
+  )
+  let actual = app.check_status(context.Background(), target(), "dev", "")
+  let StatusOutcome.Failure { failure } = actual else {
+    assert false
+    return
+  }
+  assert failure.kind == domain.ErrorKind.ServiceTimeout
+}
+
+#[test("a probe failure before the deadline remains in progress")]
+fn probe_failure_before_deadline_remains_in_progress() {
+  let mut app = app_with_kiac_reader_failure()
+  let actual = app.check_status(context.Background(), target(), "dev", "")
+  let StatusOutcome.InProgress { message, .. } = actual else {
+    assert false
+    return
+  }
+  assert message.contains("unreachable")
 }
