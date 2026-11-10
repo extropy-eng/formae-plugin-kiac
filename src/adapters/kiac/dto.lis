@@ -44,3 +44,37 @@ impl KiacCluster {
     }
   }
 }
+
+#[json(camel_case)]
+pub struct CheckRaw {
+  pub id: string,
+  pub name: string,
+  pub status: string,
+  pub detail: string,
+}
+
+#[json(camel_case)]
+#[equality]
+pub struct VerificationRaw {
+  pub healthy: bool,
+  pub checked_at: string,
+  pub duration: string,
+  pub checks: Slice<CheckRaw>,
+}
+
+impl VerificationRaw {
+  pub fn to_domain(self, cluster_name: string) -> domain.Verification {
+    domain.Verification {
+      cluster_name,
+      healthy: self.healthy,
+      checked_at: self.checked_at,
+      duration: self.duration,
+      checks: self.checks.map(|check| domain.Check {
+        id: check.id,
+        name: check.name,
+        status: check.status,
+        detail: check.detail,
+      }),
+    }
+  }
+}

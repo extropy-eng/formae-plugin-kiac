@@ -412,3 +412,42 @@ fn cluster_argv_includes_all_optional_flags() {
   ]
   assert actual.equals(expected)
 }
+
+#[test("cluster verification JSON maps to the domain verification")]
+fn verification_maps_to_domain() -> Result<(), error> {
+  let payload = "{
+    \"healthy\": true,
+    \"checkedAt\": \"2026-10-04T20:01:06Z\",
+    \"duration\": \"2s\",
+    \"checks\": [
+      {
+        \"id\": \"kubernetes.api\",
+        \"name\": \"Kubernetes API\",
+        \"status\": \"pass\",
+        \"detail\": \"ok\"
+      }
+    ]
+  }"
+  let target = target_with_fake_kiac(f"echo '{payload}'")?
+  let actual = KiacCli { .. }.verify_cluster(
+    context.Background(),
+    target,
+    "dev",
+  )?
+  let expected = domain.Verification {
+    cluster_name: "dev",
+    healthy: true,
+    checked_at: "2026-10-04T20:01:06Z",
+    duration: "2s",
+    checks: [
+      domain.Check {
+        id: "kubernetes.api",
+        name: "Kubernetes API",
+        status: "pass",
+        detail: "ok",
+      },
+    ],
+  }
+  assert actual.equals(expected)
+  Ok(())
+}

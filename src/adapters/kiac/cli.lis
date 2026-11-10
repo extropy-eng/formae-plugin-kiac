@@ -82,6 +82,29 @@ impl KiacCli {
       |_| (),
     )
   }
+
+  pub fn verify_cluster(
+    self: KiacCli,
+    ctx: context.Context,
+    target: domain.TargetConfig,
+    cluster: string,
+  ) -> Result<domain.Verification, domain.Failure> {
+    let result = run_kiac(ctx, target, [
+      "verify",
+      "cluster",
+      "--name",
+      cluster,
+      "-o",
+      "json",
+    ])?
+    let mut raw: VerificationRaw = VerificationRaw { .. }
+    json
+      .Unmarshal(result.stdout as Slice<byte>, &raw)
+      .map_err(|_| {
+        domain.fail(domain.ErrorKind.InternalFailure, "invalid verify output")
+      })?
+    Ok(raw.to_domain(cluster))
+  }
 }
 
 fn fetch_clusters(
