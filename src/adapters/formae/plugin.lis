@@ -114,6 +114,21 @@ impl Plugin {
           Err(failure) => Ok(read_failure(TYPE_CLUSTER, failure.kind)),
         }
       },
+      TYPE_NODE => {
+        let target = match parse_target(request.TargetConfig) {
+          Ok(target) => target,
+          Err(failure) => {
+            return Ok(read_failure(TYPE_NODE, failure.kind))
+          },
+        }
+        match self.app.read_node(ctx, target, request.NativeID) {
+          Ok(properties) => Ok(read_success(
+            TYPE_NODE,
+            encode_properties(properties),
+          )),
+          Err(failure) => Ok(read_failure(TYPE_NODE, failure.kind)),
+        }
+      },
       _ => Ok(read_failure(
         request.ResourceType,
         domain.ErrorKind.InvalidRequest,

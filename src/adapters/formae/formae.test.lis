@@ -332,3 +332,57 @@ fn resume_status_echoes_nonce_native_id() -> Result<(), error> {
   assert progress.OperationStatus == resource.OperationStatusSuccess
   Ok(())
 }
+
+fn two_node_cluster_json() -> string {
+  "{
+    \"name\": \"dev\",
+    \"status\": \"2/2 running\",
+    \"runningNodes\": 2,
+    \"totalNodes\": 2,
+    \"k8sVersion\": \"v1.37.0-k3s1\",
+    \"created\": \"2026-10-04T03:18:35Z\",
+    \"nodes\": [
+      {
+        \"name\": \"cp\",
+        \"state\": \"running\",
+        \"ip\": \"10.0.0.1\",
+        \"image\": \"img\",
+        \"created\": \"2026-10-04T03:18:35Z\"
+      },
+      {
+        \"name\": \"kiac-dev-worker-1\",
+        \"state\": \"running\",
+        \"ip\": \"10.0.0.2\",
+        \"image\": \"img\",
+        \"created\": \"2026-10-04T03:18:35Z\"
+      }
+    ]
+  }"
+}
+
+#[test("the SDK read path returns node properties")]
+fn sdk_read_returns_node_properties() -> Result<(), error> {
+  let path = fake_kiac(f"echo '{two_node_cluster_json()}'")?
+  let mut plugin = plugin_with_kiac(path)
+  let request = resource.ReadRequest {
+    NativeID: "dev/kiac-dev-worker-1",
+    ResourceType: TYPE_NODE,
+    TargetConfig: target_for(path),
+    PriorProperties: raw_message(""),
+  }
+  let result = plugin.Read(context.Background(), &request)?
+  assert result.ErrorCode == resource.OperationErrorCodeNotSet
+  let mut actual: NodeOutput = NodeOutput { .. }
+  json.Unmarshal(result.Properties as Slice<byte>, &actual)?
+  assert actual ==
+  NodeOutput {
+    id: "dev/kiac-dev-worker-1",
+    cluster_name: "dev",
+    name: "kiac-dev-worker-1",
+    state: "running",
+    ip: "10.0.0.2",
+    image: "img",
+    created: "2026-10-04T03:18:35Z",
+  }
+  Ok(())
+}

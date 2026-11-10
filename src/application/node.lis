@@ -15,6 +15,31 @@ fn split_node(spec: domain.NodeSpec) -> (string, string) {
 }
 
 impl Application {
+  pub fn read_node(
+    self: mut Ref<Application>,
+    ctx: context.Context,
+    target: domain.TargetConfig,
+    native_id: string,
+  ) -> Result<ResourceProperties, domain.Failure> {
+    let (cluster_name, node_name) = domain.split_id(native_id)
+    let parent = match self.reader.find_cluster(ctx, target, cluster_name)? {
+      Some(parent) => parent,
+      None => {
+        return Err(domain.fail(
+          domain.ErrorKind.NotFound,
+          f"cluster not found: {cluster_name}",
+        ))
+      },
+    }
+    match parent.nodes.find(|node| node.name == node_name) {
+      Some(node) => Ok(ResourceProperties.Node { cluster: cluster_name, node }),
+      None => Err(domain.fail(
+        domain.ErrorKind.NotFound,
+        f"node not found: {cluster_name}/{node_name}",
+      )),
+    }
+  }
+
   pub fn create_node(
     self: mut Ref<Application>,
     ctx: context.Context,
