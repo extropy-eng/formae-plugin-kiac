@@ -7,6 +7,35 @@ import "go:context"
 import "domain"
 
 impl Application {
+  pub fn create_resume(
+    self: mut Ref<Application>,
+    _ctx: context.Context,
+    target: domain.TargetConfig,
+    spec: domain.ResumeSpec,
+  ) -> Result<CreateOutcome, domain.Failure> {
+    let cluster_name = if spec.cluster_name.is_empty() {
+      domain.split_id(spec.id).0
+    } else {
+      spec.cluster_name
+    }
+    let native_id = if spec.id.is_empty() {
+      f"{cluster_name}/{spec.nonce}"
+    } else {
+      spec.id
+    }
+    let handle = self.lifecycle.start_resume_cluster(target, cluster_name)
+    self.ops.put(cluster_name, handle)
+    Ok(
+      CreateOutcome {
+        native_id,
+        request_id: cluster_name,
+        status: CreateStatus.InProgress,
+        message: f"resuming cluster {cluster_name}",
+        properties: ResourceProperties.None,
+      },
+    )
+  }
+
   pub fn delete_verification(
     self: Ref<Application>,
     native_id: string,

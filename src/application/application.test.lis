@@ -864,3 +864,27 @@ fn delete_verification_is_noop() -> Result<(), error> {
   assert actual == DeleteOutcome { native_id: "dev", no_op: true }
   Ok(())
 }
+
+fn app_with_fake_resume() -> mut Application {
+  app_with_clusters([])
+}
+
+#[test("creating resume starts an asynchronous operation")]
+fn create_resume_starts_async_operation() -> Result<(), error> {
+  let mut app = app_with_fake_resume()
+  let actual = app.create_resume(
+    context.Background(),
+    target(),
+    domain.ResumeSpec { id: "dev/n1", cluster_name: "dev", nonce: "n1" },
+  )?
+  let expected = CreateOutcome {
+    native_id: "dev/n1",
+    request_id: "dev",
+    status: CreateStatus.InProgress,
+    message: "resuming cluster dev",
+    properties: ResourceProperties.None,
+  }
+  assert actual.equals(expected)
+  assert app.ops.get("dev").is_some()
+  Ok(())
+}

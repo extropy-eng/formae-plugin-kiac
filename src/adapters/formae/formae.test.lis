@@ -8,6 +8,7 @@ import "go:github.com/platform-engineering-labs/formae/pkg/model"
 import "go:github.com/platform-engineering-labs/formae/pkg/plugin/resource"
 import "go:os"
 import "go:path/filepath"
+import "go:time"
 
 import "adapters/kiac"
 import "application"
@@ -666,5 +667,43 @@ fn sdk_delete_verification_is_noop() -> Result<(), error> {
     return Ok(())
   }
   assert progress.Operation == resource.OperationNoOp
+  Ok(())
+}
+
+fn wait_for_file_contains(path: string, needle: string) -> string {
+  for _i in 0..200 {
+    let text = read_text(path).unwrap_or("")
+    if text.contains(needle) { return text }
+    time.Sleep(10 * time.Millisecond)
+  }
+  ""
+}
+
+#[test("the SDK create path starts a resume")]
+fn sdk_create_resume() -> Result<(), error> {
+  let log_file = temp_file("args")?
+  let path = fake_kiac(f"printf '%s\\n' \"$*\" >> {log_file}; sleep 0.1")?
+  let mut plugin = plugin_with_kiac(path)
+  let request = resource.CreateRequest {
+    ResourceType: TYPE_RESUME,
+    Label: "",
+    Properties: raw_message(
+      "{
+        \"id\": \"dev/n1\",
+        \"clusterName\": \"dev\",
+        \"nonce\": \"n1\"
+      }",
+    ),
+    TargetConfig: target_for(path),
+  }
+  let result = plugin.Create(context.Background(), &request)?
+  let Some(progress) = result.ProgressResult else {
+    assert false
+    return Ok(())
+  }
+  assert progress.NativeID == "dev/n1"
+  assert progress.OperationStatus == resource.OperationStatusInProgress
+  let seen = wait_for_file_contains(log_file, "resume cluster --name dev")
+  assert seen.contains("resume cluster --name dev")
   Ok(())
 }
