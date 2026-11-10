@@ -7,6 +7,13 @@ import "go:context"
 import "domain"
 
 impl Application {
+  pub fn delete_verification(
+    self: Ref<Application>,
+    native_id: string,
+  ) -> Result<DeleteOutcome, domain.Failure> {
+    Ok(DeleteOutcome { native_id, no_op: true })
+  }
+
   pub fn read_verification(
     self: mut Ref<Application>,
     ctx: context.Context,

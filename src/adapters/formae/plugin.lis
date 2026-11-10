@@ -291,6 +291,13 @@ impl Plugin {
         }
         Ok(delete_result(outcome))
       },
+      TYPE_VERIFICATION => {
+        let outcome = match self.app.delete_verification(request.NativeID) {
+          Ok(outcome) => outcome,
+          Err(failure) => return Ok(delete_failure(failure)),
+        }
+        Ok(delete_result(outcome))
+      },
       _ => Ok(delete_failure(unsupported(request.ResourceType))),
     }
   }

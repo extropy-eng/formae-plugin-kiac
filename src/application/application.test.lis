@@ -856,3 +856,11 @@ fn read_verification_returns_health_snapshot() -> Result<(), error> {
   assert verification.cluster_name == "dev"
   Ok(())
 }
+
+#[test("deleting verification is a no-op")]
+fn delete_verification_is_noop() -> Result<(), error> {
+  let app = app_with_clusters([])
+  let actual = app.delete_verification("dev")?
+  assert actual == DeleteOutcome { native_id: "dev", no_op: true }
+  Ok(())
+}

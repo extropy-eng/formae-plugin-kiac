@@ -651,3 +651,20 @@ fn sdk_read_verification() -> Result<(), error> {
   assert actual.checks[0].id == "kubernetes.api"
   Ok(())
 }
+
+#[test("the SDK delete path treats verification as a no-op")]
+fn sdk_delete_verification_is_noop() -> Result<(), error> {
+  let mut plugin = plugin_with_kiac("/bin/true")
+  let request = resource.DeleteRequest {
+    NativeID: "dev",
+    ResourceType: TYPE_VERIFICATION,
+    TargetConfig: raw_message(""),
+  }
+  let result = plugin.Delete(context.Background(), &request)?
+  let Some(progress) = result.ProgressResult else {
+    assert false
+    return Ok(())
+  }
+  assert progress.Operation == resource.OperationNoOp
+  Ok(())
+}
