@@ -321,6 +321,16 @@ fn stopping_node_uses_stop_verb() -> Result<(), error> {
   Ok(())
 }
 
+#[test("loading an image runs the image load command")]
+fn loading_image_runs_load() -> Result<(), error> {
+  let log_file = temp_file("args")?
+  let target = target_with_fake_kiac(f"printf '%s\\n' \"$*\" >> {log_file}")?
+  KiacCli { .. }.load_image(context.Background(), target, "dev", "myapp:latest")?
+  let seen = read_text(log_file)?
+  assert strings.TrimSpace(seen) == "load image myapp:latest --name dev"
+  Ok(())
+}
+
 #[test("cluster argv includes GPU, boolean, mount, and publish flags")]
 fn cluster_argv_includes_all_optional_flags() {
   let actual = cluster_create_args(

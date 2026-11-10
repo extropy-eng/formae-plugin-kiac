@@ -55,6 +55,18 @@ impl KiacCli {
       |_| (),
     )
   }
+
+  pub fn load_image(
+    self: KiacCli,
+    ctx: context.Context,
+    target: domain.TargetConfig,
+    cluster: string,
+    image: string,
+  ) -> Result<(), domain.Failure> {
+    run_kiac(ctx, target, ["load", "image", image, "--name", cluster]).map(
+      |_| (),
+    )
+  }
 }
 
 fn fetch_clusters(
