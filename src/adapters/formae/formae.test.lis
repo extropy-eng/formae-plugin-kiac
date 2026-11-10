@@ -343,7 +343,7 @@ fn two_node_cluster_json() -> string {
     \"created\": \"2026-10-04T03:18:35Z\",
     \"nodes\": [
       {
-        \"name\": \"cp\",
+        \"name\": \"kiac-dev-control-plane\",
         \"state\": \"running\",
         \"ip\": \"10.0.0.1\",
         \"image\": \"img\",
@@ -401,5 +401,23 @@ fn sdk_delete_node_is_noop() -> Result<(), error> {
     return Ok(())
   }
   assert progress.Operation == resource.OperationNoOp
+  Ok(())
+}
+
+#[test("the SDK list path returns node native ids")]
+fn sdk_list_returns_node_ids() -> Result<(), error> {
+  let path = fake_kiac(f"echo '{two_node_cluster_json()}'")?
+  let mut plugin = plugin_with_kiac(path)
+  let mut properties = Map.new<string, string>()
+  properties["clusterName"] = "dev"
+  let request = resource.ListRequest {
+    ResourceType: TYPE_NODE,
+    TargetConfig: target_for(path),
+    AdditionalProperties: Some(properties),
+    ..,
+  }
+  let result = plugin.List(context.Background(), &request)?
+  let expected = ["dev/kiac-dev-control-plane", "dev/kiac-dev-worker-1"]
+  assert result.NativeIDs.equals(expected)
   Ok(())
 }

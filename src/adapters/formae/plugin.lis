@@ -250,6 +250,19 @@ impl Plugin {
           Err(_) => Ok(list_result([])),
         }
       },
+      TYPE_NODE => {
+        let target = match parse_target(request.TargetConfig) {
+          Ok(target) => target,
+          Err(_) => return Ok(list_result([])),
+        }
+        let cluster = request.AdditionalProperties.map_or("", |properties| {
+          properties.get("clusterName").unwrap_or("")
+        })
+        match self.app.list_nodes(ctx, target, cluster) {
+          Ok(ids) => Ok(list_result(ids)),
+          Err(_) => Ok(list_result([])),
+        }
+      },
       _ => Ok(list_result([])),
     }
   }

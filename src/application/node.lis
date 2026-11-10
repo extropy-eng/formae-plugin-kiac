@@ -15,6 +15,19 @@ fn split_node(spec: domain.NodeSpec) -> (string, string) {
 }
 
 impl Application {
+  pub fn list_nodes(
+    self: mut Ref<Application>,
+    ctx: context.Context,
+    target: domain.TargetConfig,
+    cluster: string,
+  ) -> Result<Slice<string>, domain.Failure> {
+    if cluster.is_empty() { return Ok([]) }
+    match self.reader.find_cluster(ctx, target, cluster)? {
+      Some(parent) => Ok(parent.nodes.map(|node| f"{cluster}/{node.name}")),
+      None => Ok([]),
+    }
+  }
+
   pub fn delete_node(
     self: Ref<Application>,
     native_id: string,

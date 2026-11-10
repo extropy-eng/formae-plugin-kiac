@@ -425,7 +425,7 @@ fn two_node_cluster() -> domain.Cluster {
     created: "2026-10-04T03:18:35Z",
     nodes: [
       domain.Node {
-        name: "cp",
+        name: "kiac-dev-control-plane",
         state: "running",
         ip: "10.0.0.1",
         image: "img",
@@ -594,5 +594,22 @@ fn delete_node_is_noop() -> Result<(), error> {
   let app = app_with_clusters([])
   let actual = app.delete_node("dev/cp")?
   assert actual == DeleteOutcome { native_id: "dev/cp", no_op: true }
+  Ok(())
+}
+
+#[test("listing nodes uses the parent cluster")]
+fn list_nodes_uses_parent_cluster() -> Result<(), error> {
+  let mut app = app_with_clusters([two_node_cluster()])
+  let actual = app.list_nodes(context.Background(), target(), "dev")?
+  let expected = ["dev/kiac-dev-control-plane", "dev/kiac-dev-worker-1"]
+  assert actual.equals(expected)
+  Ok(())
+}
+
+#[test("listing nodes without a parent is empty")]
+fn list_nodes_without_parent_is_empty() -> Result<(), error> {
+  let mut app = app_with_clusters([two_node_cluster()])
+  let actual = app.list_nodes(context.Background(), target(), "")?
+  assert actual.is_empty()
   Ok(())
 }
