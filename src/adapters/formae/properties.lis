@@ -1,0 +1,188 @@
+// © 2026 Extropy Engineering
+//
+// SPDX-License-Identifier: MIT
+
+import "go:encoding/json"
+
+import "domain"
+
+#[json(camel_case)]
+struct MountPropsRaw { source: string, target: string, readonly: bool }
+
+#[json(camel_case)]
+struct PortMappingPropsRaw {
+  host_ip: string,
+  host_port: int,
+  container_port: int,
+  protocol: string,
+}
+
+#[json(camel_case)]
+struct ClusterPropsRaw {
+  name: string,
+  distro: string,
+  cni: string,
+  workers: int,
+  gpu_workers: int,
+  gpu_image: string,
+  gateway: bool,
+  no_lb: bool,
+  dns: Slice<string>,
+  mounts: Slice<MountPropsRaw>,
+  publish: Slice<PortMappingPropsRaw>,
+}
+
+#[json(camel_case)]
+struct NodePropsRaw {
+  id: string,
+  cluster_name: string,
+  name: string,
+  state: string,
+}
+
+#[json(camel_case)]
+struct GpuCompatPropsRaw {
+  id: string,
+  cluster_name: string,
+  namespace: string,
+  enabled: bool,
+  rotate_certificate: bool,
+}
+
+#[json(camel_case)]
+struct ImagePropsRaw { id: string, cluster_name: string, image: string }
+
+#[json(camel_case)]
+struct VerificationPropsRaw { cluster_name: string }
+
+#[json(camel_case)]
+struct ResumePropsRaw { id: string, cluster_name: string, nonce: string }
+
+fn invalid(error: string) -> domain.Failure {
+  domain.fail(domain.ErrorKind.InvalidRequest, f"invalid properties: {error}")
+}
+
+pub fn decode_cluster_props(
+  raw: json.RawMessage,
+) -> Result<domain.ClusterSpec, domain.Failure> {
+  let mut parsed = ClusterPropsRaw { .. }
+  json.Unmarshal(raw.0, &parsed).map_err(|e| invalid(e.Error()))?
+  Ok(
+    domain.ClusterSpec {
+      name: parsed.name,
+      distro: parsed.distro,
+      cni: parsed.cni,
+      workers: parsed.workers,
+      gpu_workers: parsed.gpu_workers,
+      gpu_image: parsed.gpu_image,
+      gateway: parsed.gateway,
+      no_lb: parsed.no_lb,
+      dns: parsed.dns,
+      mounts: parsed.mounts.map(|mount| domain.MountSpec {
+        source: mount.source,
+        target: mount.target,
+        readonly: mount.readonly,
+      }),
+      publish: parsed.publish.map(|mapping| domain.PortMappingSpec {
+        host_ip: mapping.host_ip,
+        host_port: mapping.host_port,
+        container_port: mapping.container_port,
+        protocol: mapping.protocol,
+      }),
+    },
+  )
+}
+
+pub fn decode_node_props(
+  raw: json.RawMessage,
+) -> Result<domain.NodeSpec, domain.Failure> {
+  let mut parsed = NodePropsRaw { .. }
+  json.Unmarshal(raw.0, &parsed).map_err(|e| invalid(e.Error()))?
+  Ok(
+    domain.NodeSpec {
+      id: parsed.id,
+      cluster_name: parsed.cluster_name,
+      name: parsed.name,
+      state: parsed.state,
+    },
+  )
+}
+
+pub fn decode_prior_node(raw: json.RawMessage) -> domain.NodeSpec {
+  let mut parsed = NodePropsRaw { .. }
+  let _ = json.Unmarshal(raw.0, &parsed)
+  domain.NodeSpec {
+    id: parsed.id,
+    cluster_name: parsed.cluster_name,
+    name: parsed.name,
+    state: parsed.state,
+  }
+}
+
+pub fn decode_gpu_compat(
+  raw: json.RawMessage,
+) -> Result<domain.GpuCompatSpec, domain.Failure> {
+  let mut parsed = GpuCompatPropsRaw { .. }
+  json
+    .Unmarshal(raw.0, &parsed)
+    .map_err(|e| domain.fail(domain.ErrorKind.InvalidRequest, e.Error()))?
+  Ok(
+    domain.GpuCompatSpec {
+      id: parsed.id,
+      cluster_name: parsed.cluster_name,
+      namespace: parsed.namespace,
+      enabled: parsed.enabled,
+      rotate_certificate: parsed.rotate_certificate,
+    },
+  )
+}
+
+pub fn decode_desired_gpu_compat(raw: json.RawMessage) -> domain.GpuCompatSpec {
+  let mut parsed = GpuCompatPropsRaw { .. }
+  let _ = json.Unmarshal(raw.0, &parsed)
+  domain.GpuCompatSpec {
+    id: parsed.id,
+    cluster_name: parsed.cluster_name,
+    namespace: parsed.namespace,
+    enabled: parsed.enabled,
+    rotate_certificate: parsed.rotate_certificate,
+  }
+}
+
+pub fn decode_image(
+  raw: json.RawMessage,
+) -> Result<domain.ImageSpec, domain.Failure> {
+  let mut parsed = ImagePropsRaw { .. }
+  json
+    .Unmarshal(raw.0, &parsed)
+    .map_err(|e| domain.fail(domain.ErrorKind.InvalidRequest, e.Error()))?
+  Ok(
+    domain.ImageSpec {
+      id: parsed.id,
+      cluster_name: parsed.cluster_name,
+      image: parsed.image,
+    },
+  )
+}
+
+pub fn decode_verification(raw: json.RawMessage) -> domain.VerificationSpec {
+  let mut parsed = VerificationPropsRaw { .. }
+  let _ = json.Unmarshal(raw.0, &parsed)
+  domain.VerificationSpec { cluster_name: parsed.cluster_name }
+}
+
+pub fn decode_resume(
+  raw: json.RawMessage,
+) -> Result<domain.ResumeSpec, domain.Failure> {
+  let mut parsed = ResumePropsRaw { .. }
+  json
+    .Unmarshal(raw.0, &parsed)
+    .map_err(|e| domain.fail(domain.ErrorKind.InvalidRequest, e.Error()))?
+  Ok(
+    domain.ResumeSpec {
+      id: parsed.id,
+      cluster_name: parsed.cluster_name,
+      nonce: parsed.nonce,
+    },
+  )
+}

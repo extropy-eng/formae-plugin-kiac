@@ -94,3 +94,51 @@ fn noop_delete_uses_noop_operation() {
   }
   assert progress.Operation == resource.OperationNoOp
 }
+
+#[test("cluster request properties decode into a domain cluster spec")]
+fn cluster_request_decodes_to_spec() -> Result<(), error> {
+  let actual = decode_cluster_props(raw_message(
+    "{
+      \"name\": \"dev\",
+      \"distro\": \"k3s\",
+      \"workers\": 2,
+      \"cni\": \"cilium\"
+    }",
+  ))?
+  let expected = domain.ClusterSpec {
+    name: "dev",
+    distro: "k3s",
+    workers: 2,
+    cni: "cilium",
+    ..,
+  }
+  assert actual.equals(expected)
+  Ok(())
+}
+
+#[test("node request properties decode into a domain node spec")]
+fn node_request_decodes_to_spec() -> Result<(), error> {
+  let actual = decode_node_props(raw_message(
+    "{
+      \"id\": \"dev/cp\",
+      \"clusterName\": \"dev\",
+      \"name\": \"cp\",
+      \"state\": \"stopped\"
+    }",
+  ))?
+  assert actual ==
+  domain.NodeSpec {
+    id: "dev/cp",
+    cluster_name: "dev",
+    name: "cp",
+    state: "stopped",
+  }
+  Ok(())
+}
+
+#[test("malformed node properties are an invalid request")]
+fn malformed_node_properties_are_invalid() {
+  let failure = expect_failure(decode_node_props(raw_message("{")))
+  assert failure.kind == domain.ErrorKind.InvalidRequest
+  assert failure.message.contains("invalid properties:")
+}
