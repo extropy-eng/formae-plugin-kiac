@@ -901,3 +901,11 @@ fn read_resume_echoes_nonce_id() -> Result<(), error> {
   domain.Resume { id: "dev/n1", cluster_name: "dev", nonce: "" }
   Ok(())
 }
+
+#[test("deleting resume is a no-op")]
+fn delete_resume_is_noop() -> Result<(), error> {
+  let app = app_with_clusters([])
+  let actual = app.delete_resume("dev/n1")?
+  assert actual == DeleteOutcome { native_id: "dev/n1", no_op: true }
+  Ok(())
+}

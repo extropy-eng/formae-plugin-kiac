@@ -724,3 +724,20 @@ fn sdk_read_resume_echoes_id() -> Result<(), error> {
   assert actual == ResumeOutput { id: "dev/n1", cluster_name: "dev", nonce: "" }
   Ok(())
 }
+
+#[test("the SDK delete path treats resume as a no-op")]
+fn sdk_delete_resume_is_noop() -> Result<(), error> {
+  let mut plugin = plugin_with_kiac("/bin/true")
+  let request = resource.DeleteRequest {
+    NativeID: "dev/n1",
+    ResourceType: TYPE_RESUME,
+    TargetConfig: raw_message(""),
+  }
+  let result = plugin.Delete(context.Background(), &request)?
+  let Some(progress) = result.ProgressResult else {
+    assert false
+    return Ok(())
+  }
+  assert progress.Operation == resource.OperationNoOp
+  Ok(())
+}
