@@ -188,6 +188,13 @@ impl Plugin {
           Err(failure) => Ok(delete_failure(failure)),
         }
       },
+      TYPE_NODE => {
+        let outcome = match self.app.delete_node(request.NativeID) {
+          Ok(outcome) => outcome,
+          Err(failure) => return Ok(delete_failure(failure)),
+        }
+        Ok(delete_result(outcome))
+      },
       _ => Ok(delete_failure(unsupported(request.ResourceType))),
     }
   }

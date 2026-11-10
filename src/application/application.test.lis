@@ -588,3 +588,11 @@ fn update_node_survives_missing_parent() -> Result<(), error> {
   assert actual.properties.equals(ResourceProperties.None)
   Ok(())
 }
+
+#[test("deleting a node is a no-op")]
+fn delete_node_is_noop() -> Result<(), error> {
+  let app = app_with_clusters([])
+  let actual = app.delete_node("dev/cp")?
+  assert actual == DeleteOutcome { native_id: "dev/cp", no_op: true }
+  Ok(())
+}

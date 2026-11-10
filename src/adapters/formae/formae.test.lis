@@ -386,3 +386,20 @@ fn sdk_read_returns_node_properties() -> Result<(), error> {
   }
   Ok(())
 }
+
+#[test("the SDK delete path treats a node as a no-op")]
+fn sdk_delete_node_is_noop() -> Result<(), error> {
+  let mut plugin = plugin_with_kiac("/bin/true")
+  let request = resource.DeleteRequest {
+    NativeID: "dev/cp",
+    ResourceType: TYPE_NODE,
+    TargetConfig: raw_message("{}"),
+  }
+  let result = plugin.Delete(context.Background(), &request)?
+  let Some(progress) = result.ProgressResult else {
+    assert false
+    return Ok(())
+  }
+  assert progress.Operation == resource.OperationNoOp
+  Ok(())
+}
