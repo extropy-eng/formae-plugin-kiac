@@ -598,3 +598,22 @@ fn sdk_delete_image_is_noop() -> Result<(), error> {
   assert progress.Operation == resource.OperationNoOp
   Ok(())
 }
+
+#[test("the SDK create path returns the verification cluster id")]
+fn sdk_create_verification() -> Result<(), error> {
+  let mut plugin = plugin_with_kiac("/bin/true")
+  let request = resource.CreateRequest {
+    ResourceType: TYPE_VERIFICATION,
+    Label: "",
+    Properties: raw_message("{\"clusterName\":\"dev\"}"),
+    TargetConfig: raw_message("{}"),
+  }
+  let result = plugin.Create(context.Background(), &request)?
+  let Some(progress) = result.ProgressResult else {
+    assert false
+    return Ok(())
+  }
+  assert progress.OperationStatus == resource.OperationStatusSuccess
+  assert progress.NativeID == "dev"
+  Ok(())
+}

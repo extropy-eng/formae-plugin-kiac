@@ -7,6 +7,21 @@ import "go:context"
 import "domain"
 
 impl Application {
+  pub fn create_verification(
+    self: Ref<Application>,
+    spec: domain.VerificationSpec,
+  ) -> Result<CreateOutcome, domain.Failure> {
+    Ok(
+      CreateOutcome {
+        native_id: spec.cluster_name,
+        request_id: "",
+        status: CreateStatus.Success,
+        message: "",
+        properties: ResourceProperties.None,
+      },
+    )
+  }
+
   pub fn delete_image(
     self: Ref<Application>,
     native_id: string,

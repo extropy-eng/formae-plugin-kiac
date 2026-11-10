@@ -116,6 +116,13 @@ impl Plugin {
           Err(failure) => Ok(create_failure(failure)),
         }
       },
+      TYPE_VERIFICATION => {
+        let spec = decode_verification(request.Properties)
+        match self.app.create_verification(spec) {
+          Ok(outcome) => Ok(create_result(outcome, encode_properties)),
+          Err(failure) => Ok(create_failure(failure)),
+        }
+      },
       _ => Ok(create_failure(unsupported(request.ResourceType))),
     }
   }

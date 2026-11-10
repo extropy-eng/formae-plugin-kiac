@@ -791,3 +791,20 @@ fn delete_image_is_noop() -> Result<(), error> {
   assert actual == DeleteOutcome { native_id: "dev/myapp:latest", no_op: true }
   Ok(())
 }
+
+#[test("creating verification returns the cluster id")]
+fn create_verification_returns_cluster_id() -> Result<(), error> {
+  let app = app_with_clusters([])
+  let actual = app.create_verification(
+    domain.VerificationSpec { cluster_name: "dev" },
+  )?
+  let expected = CreateOutcome {
+    native_id: "dev",
+    request_id: "",
+    status: CreateStatus.Success,
+    message: "",
+    properties: ResourceProperties.None,
+  }
+  assert actual.equals(expected)
+  Ok(())
+}
