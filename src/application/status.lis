@@ -1,0 +1,98 @@
+// © 2026 Extropy Engineering
+//
+// SPDX-License-Identifier: MIT
+
+import "go:context"
+import "go:time"
+
+import "domain"
+
+impl Application {
+  pub fn check_status(
+    self: mut Ref<Application>,
+    ctx: context.Context,
+    target: domain.TargetConfig,
+    request_id: string,
+    native_id: string,
+  ) -> StatusOutcome {
+    let operation = self.ops.get(request_id)
+    let cluster_name = match operation {
+      Some(operation) => operation.cluster,
+      None => request_id,
+    }
+    let snapshot = match operation {
+      Some(operation) => Some(operation.handle.snapshot()),
+      None => None,
+    }
+    let expired = match snapshot {
+      Some(snapshot) => time.Since(snapshot.started_at) >
+      time.Duration(target.default_wait_seconds as int64) * time.Second,
+      None => false,
+    }
+
+    let (probe_ctx, cancel) = context.WithTimeout(
+      ctx,
+      time.Duration(target.status_timeout_seconds as int64) * time.Second,
+    )
+    defer cancel()
+    match self.reader.find_cluster(probe_ctx, target, cluster_name) {
+      Ok(Some(cluster)) => {
+        let resolved_id = outcome_id(native_id, cluster.name)
+        if cluster.running_nodes == cluster.total_nodes {
+          StatusOutcome.Success {
+            native_id: resolved_id,
+            properties: ResourceProperties.Cluster(cluster),
+          }
+        } else if expired {
+          StatusOutcome.Failure { failure: timeout_failure(cluster_name) }
+        } else {
+          StatusOutcome.InProgress {
+            native_id: resolved_id,
+            message: cluster.status,
+          }
+        }
+      },
+      Ok(None) => match snapshot {
+        Some(snapshot) if snapshot.done && snapshot.error.is_some() => {
+          StatusOutcome.Failure {
+            failure: domain.fail(
+              domain.ErrorKind.GeneralServiceException,
+              snapshot.error.unwrap_or(""),
+            ),
+          }
+        },
+        _ => {
+          if expired {
+            StatusOutcome.Failure { failure: timeout_failure(cluster_name) }
+          } else {
+            StatusOutcome.InProgress {
+              native_id: outcome_id(native_id, cluster_name),
+              message: f"waiting for cluster {cluster_name}",
+            }
+          }
+        },
+      },
+      Err(failure) => {
+        if expired {
+          StatusOutcome.Failure { failure: timeout_failure(cluster_name) }
+        } else {
+          StatusOutcome.InProgress {
+            native_id: outcome_id(native_id, cluster_name),
+            message: failure.message,
+          }
+        }
+      },
+    }
+  }
+}
+
+fn timeout_failure(cluster_name: string) -> domain.Failure {
+  domain.fail(
+    domain.ErrorKind.ServiceTimeout,
+    f"cluster {cluster_name} did not converge",
+  )
+}
+
+fn outcome_id(native_id: string, fallback: string) -> string {
+  if native_id.is_empty() { fallback } else { native_id }
+}

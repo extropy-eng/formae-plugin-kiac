@@ -3,16 +3,15 @@
 // SPDX-License-Identifier: MIT
 
 import "go:context"
-import "go:time"
 
 import "domain"
 import "ports"
 
-struct FakeHandle {}
+struct FakeHandle { state: domain.ProcessSnapshot }
 
 impl FakeHandle {
   fn snapshot(self: FakeHandle) -> domain.ProcessSnapshot {
-    domain.ProcessSnapshot { done: true, error: None, started_at: time.Now() }
+    self.state
   }
 }
 
@@ -357,4 +356,61 @@ fn delete_existing_cluster_invokes_lifecycle() -> Result<(), error> {
   assert actual == DeleteOutcome { native_id: "dev", no_op: false }
   assert fake.deleted.*.equals(["dev"])
   Ok(())
+}
+
+fn busy_cluster() -> domain.Cluster {
+  domain.Cluster {
+    name: "dev",
+    status: "1/2 running",
+    running_nodes: 1,
+    total_nodes: 2,
+    k8s_version: "v1.37.0-k3s1",
+    created: "2026-10-04T03:18:35Z",
+    nodes: [],
+  }
+}
+
+#[test("a ready cluster status is a success value")]
+fn ready_cluster_status_is_success() {
+  let mut app = app_with_clusters([ready_cluster()])
+  let actual = app.check_status(context.Background(), target(), "dev", "")
+  let expected = StatusOutcome.Success {
+    native_id: "dev",
+    properties: ResourceProperties.Cluster(ready_cluster()),
+  }
+  assert actual.equals(expected)
+}
+
+#[test("a busy cluster status is in progress")]
+fn busy_cluster_status_is_in_progress() {
+  let mut app = app_with_clusters([busy_cluster()])
+  let actual = app.check_status(context.Background(), target(), "dev", "")
+  let expected = StatusOutcome.InProgress {
+    native_id: "dev",
+    message: "1/2 running",
+  }
+  assert actual.equals(expected)
+}
+
+#[test("a failed background create surfaces its stderr")]
+fn failed_background_create_surfaces_stderr() {
+  let mut app = app_with_clusters([])
+  app.ops.put(
+    "dev",
+    FakeHandle {
+      state: domain.ProcessSnapshot {
+        done: true,
+        error: Some("boom: cannot create"),
+        ..,
+      },
+      ..,
+    },
+  )
+  let actual = app.check_status(context.Background(), target(), "dev", "")
+  let StatusOutcome.Failure { failure } = actual else {
+    assert false
+    return
+  }
+  assert failure.kind == domain.ErrorKind.GeneralServiceException
+  assert failure.message.contains("boom")
 }
