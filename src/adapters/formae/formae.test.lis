@@ -225,9 +225,17 @@ fn node_read_properties_include_parent_and_state() -> Result<(), error> {
   Ok(())
 }
 
-fn plugin_with_kiac(_path: string) -> mut Plugin {
+fn app_with_kiac(_path: string) -> mut application.Application {
   let cli = kiac.KiacCli { .. }
-  Plugin.new(application.new(cli, cli, cli, cli, cli, cli))
+  application.new(cli, cli, cli, cli, cli, cli)
+}
+
+fn plugin_with_app(app: mut application.Application) -> mut Plugin {
+  Plugin.new(app)
+}
+
+fn plugin_with_kiac(path: string) -> mut Plugin {
+  plugin_with_app(app_with_kiac(path))
 }
 
 #[test("the plugin advertises namespace-scoped rate limiting")]
@@ -266,6 +274,18 @@ fn ready_cluster_json() -> string {
 
 fn target_for(path: string) -> mut json.RawMessage {
   raw_message(f"{{\"KiacPath\":\"{path}\"}}")
+}
+
+fn busy_cluster_json() -> string {
+  "{
+    \"name\": \"dev\",
+    \"status\": \"1/2 running\",
+    \"runningNodes\": 1,
+    \"totalNodes\": 2,
+    \"k8sVersion\": \"v1.37.0-k3s1\",
+    \"created\": \"2026-10-04T03:18:35Z\",
+    \"nodes\": []
+  }"
 }
 
 #[test("the SDK read path returns cluster properties")]
@@ -739,5 +759,63 @@ fn sdk_delete_resume_is_noop() -> Result<(), error> {
     return Ok(())
   }
   assert progress.Operation == resource.OperationNoOp
+  Ok(())
+}
+
+#[test("the SDK status path reports a ready cluster")]
+fn sdk_status_ready_cluster() -> Result<(), error> {
+  let path = fake_kiac(f"echo '{ready_cluster_json()}'")?
+  let mut plugin = plugin_with_app(app_with_kiac(path))
+  let request = resource.StatusRequest {
+    RequestID: "dev",
+    NativeID: "",
+    ResourceType: TYPE_CLUSTER,
+    TargetConfig: target_for(path),
+  }
+  let result = plugin.Status(context.Background(), &request)?
+  let Some(progress) = result.ProgressResult else {
+    assert false
+    return Ok(())
+  }
+  assert progress.OperationStatus == resource.OperationStatusSuccess
+  assert progress.NativeID == "dev"
+  Ok(())
+}
+
+#[test("the SDK status path reports a busy cluster")]
+fn sdk_status_busy_cluster() -> Result<(), error> {
+  let path = fake_kiac(f"echo '{busy_cluster_json()}'")?
+  let mut plugin = plugin_with_app(app_with_kiac(path))
+  let request = resource.StatusRequest {
+    RequestID: "dev",
+    NativeID: "",
+    ResourceType: TYPE_CLUSTER,
+    TargetConfig: target_for(path),
+  }
+  let result = plugin.Status(context.Background(), &request)?
+  let Some(progress) = result.ProgressResult else {
+    assert false
+    return Ok(())
+  }
+  assert progress.OperationStatus == resource.OperationStatusInProgress
+  assert progress.StatusMessage == "1/2 running"
+  Ok(())
+}
+
+#[test("an unsupported status resource type is an invalid request")]
+fn sdk_status_unsupported_type() -> Result<(), error> {
+  let mut plugin = plugin_with_kiac("/bin/true")
+  let request = resource.StatusRequest {
+    RequestID: "dev",
+    NativeID: "",
+    ResourceType: "KIAC::Unknown",
+    TargetConfig: raw_message("{}"),
+  }
+  let result = plugin.Status(context.Background(), &request)?
+  let Some(progress) = result.ProgressResult else {
+    assert false
+    return Ok(())
+  }
+  assert progress.ErrorCode == resource.OperationErrorCodeInvalidRequest
   Ok(())
 }
