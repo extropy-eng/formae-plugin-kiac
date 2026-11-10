@@ -146,34 +146,32 @@ impl Plugin {
     ctx: context.Context,
     request: Ref<resource.StatusRequest>,
   ) -> Result<mut Ref<resource.StatusResult>, error> {
-    match request.ResourceType {
-      TYPE_CLUSTER => {
-        let target = match parse_target(request.TargetConfig) {
-          Ok(target) => target,
-          Err(failure) => {
-            return Ok(status_result(
-              application.StatusOutcome.Failure { failure },
-              request.*,
-              encode_properties,
-            ))
-          },
-        }
-        let outcome = self.app.check_status(
-          ctx,
-          target,
-          request.RequestID,
-          request.NativeID,
-        )
-        Ok(status_result(outcome, request.*, encode_properties))
-      },
-      _ => Ok(status_result(
-        application.StatusOutcome.Failure {
-          failure: unsupported(request.ResourceType),
+    if request.ResourceType == TYPE_CLUSTER || request.ResourceType == TYPE_RESUME {
+      let target = match parse_target(request.TargetConfig) {
+        Ok(target) => target,
+        Err(failure) => {
+          return Ok(status_result(
+            application.StatusOutcome.Failure { failure },
+            request.*,
+            encode_properties,
+          ))
         },
-        request.*,
-        encode_properties,
-      )),
+      }
+      let outcome = self.app.check_status(
+        ctx,
+        target,
+        request.RequestID,
+        request.NativeID,
+      )
+      return Ok(status_result(outcome, request.*, encode_properties))
     }
+    Ok(status_result(
+      application.StatusOutcome.Failure {
+        failure: unsupported(request.ResourceType),
+      },
+      request.*,
+      encode_properties,
+    ))
   }
 
   #[allow(non_snake_case_function)]

@@ -307,3 +307,28 @@ fn sdk_list_returns_cluster_ids() -> Result<(), error> {
   assert result.NativeIDs.equals(["a", "b"])
   Ok(())
 }
+
+#[test("resume status echoes the nonce native id")]
+fn resume_status_echoes_nonce_native_id() -> Result<(), error> {
+  let script = f"if [ \"$1\" = \"get\" ]; then
+    echo '{ready_cluster_json()}'
+  else
+    sleep 0.2
+  fi"
+  let path = fake_kiac(script)?
+  let mut plugin = plugin_with_kiac(path)
+  let request = resource.StatusRequest {
+    RequestID: "dev",
+    NativeID: "dev/n1",
+    ResourceType: TYPE_RESUME,
+    TargetConfig: target_for(path),
+  }
+  let result = plugin.Status(context.Background(), &request)?
+  let Some(progress) = result.ProgressResult else {
+    assert false
+    return Ok(())
+  }
+  assert progress.NativeID == "dev/n1"
+  assert progress.OperationStatus == resource.OperationStatusSuccess
+  Ok(())
+}
