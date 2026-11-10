@@ -888,3 +888,16 @@ fn create_resume_starts_async_operation() -> Result<(), error> {
   assert app.ops.get("dev").is_some()
   Ok(())
 }
+
+#[test("reading resume echoes the nonce id")]
+fn read_resume_echoes_nonce_id() -> Result<(), error> {
+  let app = app_with_clusters([])
+  let actual = app.read_resume("dev/n1")?
+  let ResourceProperties.Resume(resume) = actual else {
+    assert false
+    return Ok(())
+  }
+  assert resume ==
+  domain.Resume { id: "dev/n1", cluster_name: "dev", nonce: "" }
+  Ok(())
+}

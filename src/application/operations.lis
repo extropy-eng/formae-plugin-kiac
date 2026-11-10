@@ -7,6 +7,16 @@ import "go:context"
 import "domain"
 
 impl Application {
+  pub fn read_resume(
+    self: Ref<Application>,
+    native_id: string,
+  ) -> Result<ResourceProperties, domain.Failure> {
+    let (cluster_name, _nonce) = domain.split_id(native_id)
+    Ok(ResourceProperties.Resume(
+      domain.Resume { id: native_id, cluster_name, nonce: "" },
+    ))
+  }
+
   pub fn create_resume(
     self: mut Ref<Application>,
     _ctx: context.Context,

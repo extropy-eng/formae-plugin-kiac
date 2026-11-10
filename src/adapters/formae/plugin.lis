@@ -211,6 +211,15 @@ impl Plugin {
           Err(failure) => Ok(read_failure(TYPE_VERIFICATION, failure.kind)),
         }
       },
+      TYPE_RESUME => {
+        match self.app.read_resume(request.NativeID) {
+          Ok(properties) => Ok(read_success(
+            TYPE_RESUME,
+            encode_properties(properties),
+          )),
+          Err(failure) => Ok(read_failure(TYPE_RESUME, failure.kind)),
+        }
+      },
       _ => Ok(read_failure(
         request.ResourceType,
         domain.ErrorKind.InvalidRequest,
