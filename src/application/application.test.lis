@@ -688,3 +688,18 @@ fn read_gpu_compat_returns_observable_fields() -> Result<(), error> {
   }
   Ok(())
 }
+
+#[test("updating GPU compatibility disables it")]
+fn update_gpu_compat_disables() -> Result<(), error> {
+  let (app, fake) = app_with_fake_gpu()
+  let mut app = app
+  let actual = app.update_gpu_compat(
+    context.Background(),
+    target(),
+    "dev/default",
+    domain.GpuCompatSpec { enabled: false, .. },
+  )?
+  assert actual.native_id == "dev/default"
+  assert fake.calls.*.equals(["disable dev/default no-rotate"])
+  Ok(())
+}

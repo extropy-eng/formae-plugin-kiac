@@ -478,3 +478,35 @@ fn sdk_read_gpu_compat_omits_write_only_fields() -> Result<(), error> {
   assert !result.Properties.contains("rotateCertificate")
   Ok(())
 }
+
+#[test("the SDK update path disables GPU compatibility")]
+fn sdk_update_gpu_compat() -> Result<(), error> {
+  let log_file = temp_file("args")?
+  let path = fake_kiac(f"printf '%s\\n' \"$*\" >> {log_file}")?
+  let mut plugin = plugin_with_kiac(path)
+  let request = resource.UpdateRequest {
+    NativeID: "dev/default",
+    ResourceType: TYPE_GPU_COMPAT,
+    Label: "",
+    PriorProperties: raw_message("{}"),
+    DesiredProperties: raw_message(
+      "{
+        \"clusterName\": \"dev\",
+        \"namespace\": \"default\",
+        \"enabled\": false
+      }",
+    ),
+    PatchDocument: None,
+    TargetConfig: target_for(path),
+  }
+  let result = plugin.Update(context.Background(), &request)?
+  let Some(progress) = result.ProgressResult else {
+    assert false
+    return Ok(())
+  }
+  assert progress.NativeID == "dev/default"
+  let seen = read_text(log_file)?
+  assert seen.contains("gpu compat disable --name dev --namespace default")
+  assert !seen.contains("rotate")
+  Ok(())
+}

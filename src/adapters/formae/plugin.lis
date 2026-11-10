@@ -187,6 +187,17 @@ impl Plugin {
           Err(failure) => Ok(update_failure(failure)),
         }
       },
+      TYPE_GPU_COMPAT => {
+        let target = match parse_target(request.TargetConfig) {
+          Ok(target) => target,
+          Err(failure) => return Ok(update_failure(failure)),
+        }
+        let desired = decode_desired_gpu_compat(request.DesiredProperties)
+        match self.app.update_gpu_compat(ctx, target, request.NativeID, desired) {
+          Ok(outcome) => Ok(update_result(outcome, encode_properties)),
+          Err(failure) => Ok(update_failure(failure)),
+        }
+      },
       _ => Ok(update_failure(domain.fail(
         domain.ErrorKind.NotUpdatable,
         f"unsupported resource type: {request.ResourceType}",

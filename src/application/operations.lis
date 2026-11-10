@@ -7,6 +7,47 @@ import "go:context"
 import "domain"
 
 impl Application {
+  pub fn update_gpu_compat(
+    self: mut Ref<Application>,
+    ctx: context.Context,
+    target: domain.TargetConfig,
+    native_id: string,
+    desired: domain.GpuCompatSpec,
+  ) -> Result<UpdateOutcome, domain.Failure> {
+    let (base_cluster, base_namespace) = domain.split_id(native_id)
+    let cluster_name = if desired.cluster_name.is_empty() {
+      base_cluster
+    } else {
+      desired.cluster_name
+    }
+    let namespace = if desired.namespace.is_empty() {
+      base_namespace
+    } else {
+      desired.namespace
+    }
+    self.gpu_compat.set_gpu_compat(
+      ctx,
+      target,
+      cluster_name,
+      namespace,
+      desired.enabled,
+      false,
+    )?
+    Ok(
+      UpdateOutcome {
+        native_id,
+        properties: ResourceProperties.GpuCompat(
+          domain.GpuCompat {
+            id: native_id,
+            cluster_name,
+            namespace,
+            enabled: desired.enabled,
+          },
+        ),
+      },
+    )
+  }
+
   pub fn read_gpu_compat(
     self: Ref<Application>,
     native_id: string,
