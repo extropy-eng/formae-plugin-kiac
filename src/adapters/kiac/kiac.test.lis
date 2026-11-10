@@ -279,6 +279,16 @@ fn cluster_resume_runs_in_background() -> Result<(), error> {
   Ok(())
 }
 
+#[test("deleting a cluster runs the delete command")]
+fn deleting_cluster_runs_delete() -> Result<(), error> {
+  let log_file = temp_file("args")?
+  let target = target_with_fake_kiac(f"printf '%s\\n' \"$*\" >> {log_file}")?
+  KiacCli { .. }.delete_cluster(context.Background(), target, "dev")?
+  let seen = read_text(log_file)?
+  assert strings.TrimSpace(seen) == "delete cluster --name dev"
+  Ok(())
+}
+
 #[test("cluster argv includes GPU, boolean, mount, and publish flags")]
 fn cluster_argv_includes_all_optional_flags() {
   let actual = cluster_create_args(

@@ -27,6 +27,15 @@ impl KiacCli {
   ) -> ports.OperationHandle {
     start_process(target, ["resume", "cluster", "--name", cluster])
   }
+
+  pub fn delete_cluster(
+    self: KiacCli,
+    ctx: context.Context,
+    target: domain.TargetConfig,
+    name: string,
+  ) -> Result<(), domain.Failure> {
+    run_kiac(ctx, target, ["delete", "cluster", "--name", name]).map(|_| ())
+  }
 }
 
 fn fetch_clusters(
