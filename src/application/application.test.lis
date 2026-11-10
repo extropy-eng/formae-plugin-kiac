@@ -766,3 +766,20 @@ fn create_image_loads_into_cluster() -> Result<(), error> {
   assert fake.calls.*.equals(["myapp:latest"])
   Ok(())
 }
+
+#[test("reading an image echoes the declared value")]
+fn read_image_echoes_declared_value() -> Result<(), error> {
+  let app = app_with_clusters([])
+  let actual = app.read_image("dev/myapp:latest")?
+  let ResourceProperties.Image(image) = actual else {
+    assert false
+    return Ok(())
+  }
+  assert image ==
+  domain.Image {
+    id: "dev/myapp:latest",
+    cluster_name: "dev",
+    image: "myapp:latest",
+  }
+  Ok(())
+}

@@ -559,3 +559,25 @@ fn sdk_create_image() -> Result<(), error> {
   assert seen.contains("load image myapp:latest --name dev")
   Ok(())
 }
+
+#[test("the SDK read path echoes the image")]
+fn sdk_read_image_echoes_declared_value() -> Result<(), error> {
+  let mut plugin = plugin_with_kiac("/bin/true")
+  let request = resource.ReadRequest {
+    NativeID: "dev/myapp:latest",
+    ResourceType: TYPE_IMAGE,
+    TargetConfig: raw_message(""),
+    PriorProperties: raw_message(""),
+  }
+  let result = plugin.Read(context.Background(), &request)?
+  assert result.ErrorCode == resource.OperationErrorCodeNotSet
+  let mut actual: ImageOutput = ImageOutput { .. }
+  json.Unmarshal(result.Properties as Slice<byte>, &actual)?
+  assert actual ==
+  ImageOutput {
+    id: "dev/myapp:latest",
+    cluster_name: "dev",
+    image: "myapp:latest",
+  }
+  Ok(())
+}

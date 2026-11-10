@@ -7,6 +7,16 @@ import "go:context"
 import "domain"
 
 impl Application {
+  pub fn read_image(
+    self: Ref<Application>,
+    native_id: string,
+  ) -> Result<ResourceProperties, domain.Failure> {
+    let (cluster_name, image) = domain.split_id(native_id)
+    Ok(ResourceProperties.Image(
+      domain.Image { id: native_id, cluster_name, image },
+    ))
+  }
+
   pub fn create_image(
     self: mut Ref<Application>,
     ctx: context.Context,
