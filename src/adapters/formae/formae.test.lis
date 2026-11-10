@@ -819,3 +819,27 @@ fn sdk_status_unsupported_type() -> Result<(), error> {
   assert progress.ErrorCode == resource.OperationErrorCodeInvalidRequest
   Ok(())
 }
+
+#[test("a stalled status probe is bounded by the status timeout")]
+fn sdk_status_stalled_probe_is_bounded() -> Result<(), error> {
+  let path = fake_kiac("if [ \"$1\" = \"get\" ]; then sleep 5; fi")?
+  let mut plugin = plugin_with_kiac(path)
+  let request = resource.StatusRequest {
+    RequestID: "dev",
+    NativeID: "",
+    ResourceType: TYPE_CLUSTER,
+    TargetConfig: raw_message(
+      f"{{\"KiacPath\":\"{path}\",\"StatusTimeoutSeconds\":1}}",
+    ),
+  }
+  let started = time.Now()
+  let result = plugin.Status(context.Background(), &request)?
+  let elapsed = time.Since(started)
+  assert elapsed < time.Duration(3) * time.Second
+  let Some(progress) = result.ProgressResult else {
+    assert false
+    return Ok(())
+  }
+  assert progress.OperationStatus == resource.OperationStatusInProgress
+  Ok(())
+}
