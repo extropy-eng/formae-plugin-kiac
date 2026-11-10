@@ -265,6 +265,20 @@ fn failed_cluster_create_start_is_reported() {
   assert snapshot.error.is_some()
 }
 
+#[test("a cluster resume runs the expected command in the background")]
+fn cluster_resume_runs_in_background() -> Result<(), error> {
+  let log_file = temp_file("args")?
+  let target = target_with_fake_kiac(
+    f"printf '%s\\n' \"$*\" >> {log_file}; sleep 0.1",
+  )?
+  let handle = KiacCli { .. }.start_resume_cluster(target, "dev")
+  let seen = wait_for_file_contains(log_file, "resume cluster --name dev")
+  assert strings.TrimSpace(seen) == "resume cluster --name dev"
+  let snapshot = wait_for_handle(handle)?
+  assert snapshot.done
+  Ok(())
+}
+
 #[test("cluster argv includes GPU, boolean, mount, and publish flags")]
 fn cluster_argv_includes_all_optional_flags() {
   let actual = cluster_create_args(

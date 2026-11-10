@@ -19,6 +19,14 @@ impl KiacCli {
   ) -> ports.OperationHandle {
     start_process(target, cluster_create_args(spec))
   }
+
+  pub fn start_resume_cluster(
+    self: KiacCli,
+    target: domain.TargetConfig,
+    cluster: string,
+  ) -> ports.OperationHandle {
+    start_process(target, ["resume", "cluster", "--name", cluster])
+  }
 }
 
 fn fetch_clusters(
