@@ -152,6 +152,14 @@ fn list_clusters(
   }
 }
 
+fn find_cluster_by_name(
+  ctx: context.Context,
+  target: TargetConfig,
+  name: string,
+) -> Result<Option<KiacCluster>, Failure> {
+  list_clusters(ctx, target).map(|clusters| clusters.find(|c| c.name == name))
+}
+
 // ---------- shared helpers ----------
 
 /// Split "<left>/<right>" on the first slash.

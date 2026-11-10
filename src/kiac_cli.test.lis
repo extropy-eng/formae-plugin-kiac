@@ -210,3 +210,33 @@ fn unmarshall_clusters() -> Result<(), error> {
   ])
   Ok(())
 }
+
+#[test("find an existing cluster by name")]
+fn find_existing_cluster() -> Result<(), error> {
+  let clusters = [
+    KiacCluster { name: "blue", .. },
+    KiacCluster { name: "green", .. },
+  ]
+  let result = find_cluster_by_name(
+    context.Background(),
+    TargetConfig {
+      kiac_path: fake_kiac(f"echo '{json.Marshal(clusters)? as string}'")?,
+      ..,
+    },
+    "green",
+  )?
+  let assert Some(cluster) = result
+  assert cluster.name == "green"
+  Ok(())
+}
+
+#[test("find a non-existent cluster")]
+fn find_nonexistent_cluster() -> Result<(), error> {
+  let result = find_cluster_by_name(
+    context.Background(),
+    TargetConfig { kiac_path: fake_kiac("printf '[]'")?, .. },
+    "missing",
+  )?
+  assert result.is_none()
+  Ok(())
+}
