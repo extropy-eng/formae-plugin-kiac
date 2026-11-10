@@ -1,0 +1,77 @@
+// © 2026 Extropy Engineering
+//
+// SPDX-License-Identifier: MIT
+
+import "go:context"
+
+import "domain"
+
+pub interface ClusterReader {
+  fn list_clusters(
+    ctx: context.Context,
+    target: domain.TargetConfig,
+  ) -> Result<Slice<domain.Cluster>, domain.Failure>
+  fn find_cluster(
+    ctx: context.Context,
+    target: domain.TargetConfig,
+    name: string,
+  ) -> Result<Option<domain.Cluster>, domain.Failure>
+}
+
+pub interface ClusterLifecycle {
+  fn start_create_cluster(
+    target: domain.TargetConfig,
+    spec: domain.ClusterSpec,
+  ) -> OperationHandle
+  fn start_resume_cluster(
+    target: domain.TargetConfig,
+    cluster: string,
+  ) -> OperationHandle
+  fn delete_cluster(
+    ctx: context.Context,
+    target: domain.TargetConfig,
+    name: string,
+  ) -> Result<(), domain.Failure>
+}
+
+pub interface NodePowerController {
+  fn set_node_power(
+    ctx: context.Context,
+    target: domain.TargetConfig,
+    cluster: string,
+    node: string,
+    power: domain.NodePower,
+  ) -> Result<(), domain.Failure>
+}
+
+pub interface ImageLoader {
+  fn load_image(
+    ctx: context.Context,
+    target: domain.TargetConfig,
+    cluster: string,
+    image: string,
+  ) -> Result<(), domain.Failure>
+}
+
+pub interface GpuCompatController {
+  fn set_gpu_compat(
+    ctx: context.Context,
+    target: domain.TargetConfig,
+    cluster: string,
+    namespace: string,
+    enabled: bool,
+    rotate: bool,
+  ) -> Result<(), domain.Failure>
+}
+
+pub interface ClusterVerifier {
+  fn verify_cluster(
+    ctx: context.Context,
+    target: domain.TargetConfig,
+    cluster: string,
+  ) -> Result<domain.Verification, domain.Failure>
+}
+
+pub interface OperationHandle {
+  fn snapshot() -> domain.ProcessSnapshot
+}

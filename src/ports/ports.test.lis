@@ -1,0 +1,60 @@
+// © 2026 Extropy Engineering
+//
+// SPDX-License-Identifier: MIT
+
+import "go:context"
+import "go:time"
+
+import "domain"
+
+struct StubReader {}
+
+impl StubReader {
+  fn list_clusters(
+    self: StubReader,
+    _ctx: context.Context,
+    _target: domain.TargetConfig,
+  ) -> Result<Slice<domain.Cluster>, domain.Failure> {
+    Ok([])
+  }
+
+  fn find_cluster(
+    self: StubReader,
+    _ctx: context.Context,
+    _target: domain.TargetConfig,
+    name: string,
+  ) -> Result<Option<domain.Cluster>, domain.Failure> {
+    Ok(Some(domain.Cluster { name, .. }))
+  }
+}
+
+struct StubHandle {}
+
+impl StubHandle {
+  fn snapshot(self: StubHandle) -> domain.ProcessSnapshot {
+    domain.ProcessSnapshot { done: true, error: None, started_at: time.Now() }
+  }
+}
+
+fn target() -> domain.TargetConfig {
+  domain.TargetConfig {
+    kiac_path: "kiac",
+    container_path: "container",
+    default_wait_seconds: 300,
+    status_timeout_seconds: 10,
+  }
+}
+
+#[test("a stub satisfies the cluster reader port")]
+fn stub_satisfies_cluster_reader() -> Result<(), error> {
+  let reader: ClusterReader = StubReader { .. }
+  let found = reader.find_cluster(context.Background(), target(), "dev")?
+  assert found.is_some()
+  Ok(())
+}
+
+#[test("a stub satisfies the operation handle port")]
+fn stub_satisfies_operation_handle() {
+  let handle: OperationHandle = StubHandle { .. }
+  assert handle.snapshot().done
+}
