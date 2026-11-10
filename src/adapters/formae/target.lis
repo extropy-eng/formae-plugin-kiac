@@ -1,0 +1,56 @@
+// © 2026 Extropy Engineering
+//
+// SPDX-License-Identifier: MIT
+
+import "go:encoding/json"
+
+import "domain"
+
+const DEFAULT_STATUS_TIMEOUT_SECONDS = 10
+
+#[json]
+struct TargetConfigRaw {
+  #[json("KiacPath")]
+  kiac_path: string,
+  #[json("ContainerPath")]
+  container_path: string,
+  #[json("DefaultWaitSeconds")]
+  default_wait_seconds: int,
+  #[json("StatusTimeoutSeconds")]
+  status_timeout_seconds: int,
+}
+
+fn non_empty(value: string, fallback: string) -> string {
+  if value.is_empty() { fallback } else { value }
+}
+
+fn positive(value: int, fallback: int) -> int {
+  if value > 0 { value } else { fallback }
+}
+
+pub fn parse_target(
+  raw: json.RawMessage,
+) -> Result<domain.TargetConfig, domain.Failure> {
+  let mut parsed = TargetConfigRaw { .. }
+  if !raw.0.is_empty() {
+    json
+      .Unmarshal(raw.0, &parsed)
+      .map_err(|e| {
+        domain.fail(
+          domain.ErrorKind.InvalidRequest,
+          f"parse target config: {e.Error()}",
+        )
+      })?
+  }
+  Ok(
+    domain.TargetConfig {
+      kiac_path: non_empty(parsed.kiac_path, "kiac"),
+      container_path: non_empty(parsed.container_path, "container"),
+      default_wait_seconds: positive(parsed.default_wait_seconds, 300),
+      status_timeout_seconds: positive(
+        parsed.status_timeout_seconds,
+        DEFAULT_STATUS_TIMEOUT_SECONDS,
+      ),
+    },
+  )
+}

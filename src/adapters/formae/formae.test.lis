@@ -1,0 +1,58 @@
+// © 2026 Extropy Engineering
+//
+// SPDX-License-Identifier: MIT
+
+import "go:encoding/json"
+
+import "domain"
+
+fn raw_message(text: string) -> mut json.RawMessage {
+  let mut encoded = (text as Slice<byte>).clone()
+  json.RawMessage(encoded)
+}
+
+fn expect_failure<T>(result: Result<T, domain.Failure>) -> domain.Failure {
+  match result {
+    Err(failure) => failure,
+    Ok(_) => domain.fail(domain.ErrorKind.InternalFailure, "expected failure"),
+  }
+}
+
+#[test("an empty target uses the default kiac path and wait values")]
+fn empty_target_uses_defaults() -> Result<(), error> {
+  let actual = parse_target(raw_message(""))?
+  assert actual ==
+  domain.TargetConfig {
+    kiac_path: "kiac",
+    container_path: "container",
+    default_wait_seconds: 300,
+    status_timeout_seconds: 10,
+  }
+  Ok(())
+}
+
+#[test("explicit target fields override the defaults")]
+fn explicit_target_overrides_defaults() -> Result<(), error> {
+  let actual = parse_target(raw_message(
+    "{
+      \"KiacPath\": \"/opt/kiac\",
+      \"DefaultWaitSeconds\": 60,
+      \"StatusTimeoutSeconds\": 3
+    }",
+  ))?
+  assert actual ==
+  domain.TargetConfig {
+    kiac_path: "/opt/kiac",
+    container_path: "container",
+    default_wait_seconds: 60,
+    status_timeout_seconds: 3,
+  }
+  Ok(())
+}
+
+#[test("malformed target JSON is an invalid request")]
+fn malformed_target_is_invalid_request() {
+  let failure = expect_failure(parse_target(raw_message("{")))
+  assert failure.kind == domain.ErrorKind.InvalidRequest
+  assert failure.message.starts_with("parse target config:")
+}
