@@ -1,0 +1,51 @@
+// © 2026 Extropy Engineering
+//
+// SPDX-License-Identifier: MIT
+
+import "go:context"
+
+import "domain"
+
+impl Application {
+  pub fn create_gpu_compat(
+    self: mut Ref<Application>,
+    ctx: context.Context,
+    target: domain.TargetConfig,
+    spec: domain.GpuCompatSpec,
+  ) -> Result<CreateOutcome, domain.Failure> {
+    let (cluster_name, namespace) = if !spec.cluster_name.is_empty() && !spec.namespace.is_empty() {
+      (spec.cluster_name, spec.namespace)
+    } else {
+      domain.split_id(spec.id)
+    }
+    let native_id = if spec.id.is_empty() {
+      f"{cluster_name}/{namespace}"
+    } else {
+      spec.id
+    }
+    self.gpu_compat.set_gpu_compat(
+      ctx,
+      target,
+      cluster_name,
+      namespace,
+      spec.enabled,
+      spec.rotate_certificate,
+    )?
+    Ok(
+      CreateOutcome {
+        native_id,
+        request_id: native_id,
+        status: CreateStatus.Success,
+        message: "",
+        properties: ResourceProperties.GpuCompat(
+          domain.GpuCompat {
+            id: native_id,
+            cluster_name,
+            namespace,
+            enabled: spec.enabled,
+          },
+        ),
+      },
+    )
+  }
+}

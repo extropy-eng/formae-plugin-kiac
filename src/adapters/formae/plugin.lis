@@ -88,6 +88,20 @@ impl Plugin {
           Err(failure) => Ok(create_failure(failure)),
         }
       },
+      TYPE_GPU_COMPAT => {
+        let target = match parse_target(request.TargetConfig) {
+          Ok(target) => target,
+          Err(failure) => return Ok(create_failure(failure)),
+        }
+        let spec = match decode_gpu_compat(request.Properties) {
+          Ok(spec) => spec,
+          Err(failure) => return Ok(create_failure(failure)),
+        }
+        match self.app.create_gpu_compat(ctx, target, spec) {
+          Ok(outcome) => Ok(create_result(outcome, encode_properties)),
+          Err(failure) => Ok(create_failure(failure)),
+        }
+      },
       _ => Ok(create_failure(unsupported(request.ResourceType))),
     }
   }

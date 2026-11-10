@@ -421,3 +421,43 @@ fn sdk_list_returns_node_ids() -> Result<(), error> {
   assert result.NativeIDs.equals(expected)
   Ok(())
 }
+
+fn temp_file(name: string) -> Result<string, error> {
+  let dir = os.MkdirTemp("", "kiac-test")?
+  Ok(filepath.Join(dir, name))
+}
+
+fn read_text(path: string) -> Result<string, error> {
+  Ok((os.ReadFile(path)?) as string)
+}
+
+#[test("the SDK create path enables GPU compatibility")]
+fn sdk_create_gpu_compat() -> Result<(), error> {
+  let log_file = temp_file("args")?
+  let path = fake_kiac(f"printf '%s\\n' \"$*\" >> {log_file}")?
+  let mut plugin = plugin_with_kiac(path)
+  let request = resource.CreateRequest {
+    ResourceType: TYPE_GPU_COMPAT,
+    Label: "",
+    Properties: raw_message(
+      "{
+        \"clusterName\": \"dev\",
+        \"namespace\": \"default\",
+        \"enabled\": true,
+        \"rotateCertificate\": true
+      }",
+    ),
+    TargetConfig: target_for(path),
+  }
+  let result = plugin.Create(context.Background(), &request)?
+  let Some(progress) = result.ProgressResult else {
+    assert false
+    return Ok(())
+  }
+  assert progress.NativeID == "dev/default"
+  let seen = read_text(log_file)?
+  assert seen.contains(
+    "gpu compat enable --name dev --namespace default --rotate-certificate",
+  )
+  Ok(())
+}
