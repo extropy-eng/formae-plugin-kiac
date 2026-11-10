@@ -58,13 +58,16 @@ impl Application {
       },
     }
     self.node_power.set_node_power(ctx, target, cluster_name, node_name, power)?
-    let properties = match self.reader.find_cluster(ctx, target, cluster_name)? {
-      Some(parent) => match parent.nodes.find(|node| node.name == node_name) {
-        Some(node) => ResourceProperties.Node { cluster: cluster_name, node },
-        None => ResourceProperties.None,
+    let properties = self.reader.find_cluster(ctx, target, cluster_name)?.map_or(
+      ResourceProperties.None,
+      |parent| {
+        parent.nodes
+          .find(|node| node.name == node_name)
+          .map_or(ResourceProperties.None, |node| {
+            ResourceProperties.Node { cluster: cluster_name, node }
+          })
       },
-      None => ResourceProperties.None,
-    }
+    )
     Ok(UpdateOutcome { native_id: resolved_id, properties })
   }
 

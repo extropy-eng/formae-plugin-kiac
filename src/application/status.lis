@@ -15,20 +15,16 @@ impl Application {
     request_id: string,
     native_id: string,
   ) -> StatusOutcome {
-    let operation = self.ops.get(request_id)
-    let cluster_name = match operation {
-      Some(operation) => operation.cluster,
-      None => request_id,
-    }
-    let snapshot = match operation {
-      Some(operation) => Some(operation.handle.snapshot()),
-      None => None,
-    }
-    let expired = match snapshot {
-      Some(snapshot) => time.Since(snapshot.started_at) >
-      time.Duration(target.default_wait_seconds as int64) * time.Second,
-      None => false,
-    }
+    let cluster_name = self.ops
+      .get(request_id)
+      .map_or(request_id, |operation| operation.cluster)
+    let snapshot = self.ops
+      .get(request_id)
+      .map(|operation| operation.handle.snapshot())
+    let expired = snapshot.map_or(false, |state| {
+      time.Since(state.started_at) >
+      time.Duration(target.default_wait_seconds as int64) * time.Second
+    })
 
     let (probe_ctx, cancel) = context.WithTimeout(
       ctx,
