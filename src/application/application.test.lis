@@ -783,3 +783,11 @@ fn read_image_echoes_declared_value() -> Result<(), error> {
   }
   Ok(())
 }
+
+#[test("deleting an image is a no-op")]
+fn delete_image_is_noop() -> Result<(), error> {
+  let app = app_with_clusters([])
+  let actual = app.delete_image("dev/myapp:latest")?
+  assert actual == DeleteOutcome { native_id: "dev/myapp:latest", no_op: true }
+  Ok(())
+}

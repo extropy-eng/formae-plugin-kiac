@@ -581,3 +581,20 @@ fn sdk_read_image_echoes_declared_value() -> Result<(), error> {
   }
   Ok(())
 }
+
+#[test("the SDK delete path treats an image as a no-op")]
+fn sdk_delete_image_is_noop() -> Result<(), error> {
+  let mut plugin = plugin_with_kiac("/bin/true")
+  let request = resource.DeleteRequest {
+    NativeID: "dev/myapp:latest",
+    ResourceType: TYPE_IMAGE,
+    TargetConfig: raw_message(""),
+  }
+  let result = plugin.Delete(context.Background(), &request)?
+  let Some(progress) = result.ProgressResult else {
+    assert false
+    return Ok(())
+  }
+  assert progress.Operation == resource.OperationNoOp
+  Ok(())
+}
