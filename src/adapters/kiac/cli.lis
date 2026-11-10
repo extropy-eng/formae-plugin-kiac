@@ -132,6 +132,17 @@ fn fetch_clusters(
   let output = strings.TrimSpace(result.stdout)
   if output == "" || output == "null" {
     Ok([])
+  } else if output.starts_with("{") {
+    let mut cluster: KiacCluster = KiacCluster { .. }
+    json
+      .Unmarshal(output as Slice<byte>, &cluster)
+      .map_err(|e| {
+        domain.fail(
+          domain.ErrorKind.GeneralServiceException,
+          f"parse kiac clusters: {e.Error()}",
+        )
+      })?
+    Ok([cluster])
   } else {
     let mut clusters: Slice<KiacCluster> = []
     json

@@ -1,0 +1,24 @@
+// © 2026 Extropy Engineering
+//
+// SPDX-License-Identifier: MIT
+
+import "go:context"
+
+import "domain"
+
+impl Application {
+  pub fn read_cluster(
+    self: mut Ref<Application>,
+    ctx: context.Context,
+    target: domain.TargetConfig,
+    native_id: string,
+  ) -> Result<ResourceProperties, domain.Failure> {
+    match self.reader.find_cluster(ctx, target, native_id)? {
+      Some(cluster) => Ok(ResourceProperties.Cluster(cluster)),
+      None => Err(domain.fail(
+        domain.ErrorKind.NotFound,
+        f"cluster not found: {native_id}",
+      )),
+    }
+  }
+}

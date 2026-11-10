@@ -65,13 +65,30 @@ impl Plugin {
   #[allow(non_snake_case_function)]
   pub fn Read(
     self: mut Ref<Plugin>,
-    _ctx: context.Context,
+    ctx: context.Context,
     request: Ref<resource.ReadRequest>,
   ) -> Result<mut Ref<resource.ReadResult>, error> {
-    Ok(read_failure(
-      request.ResourceType,
-      unsupported(request.ResourceType).kind,
-    ))
+    match request.ResourceType {
+      TYPE_CLUSTER => {
+        let target = match parse_target(request.TargetConfig) {
+          Ok(target) => target,
+          Err(failure) => {
+            return Ok(read_failure(TYPE_CLUSTER, failure.kind))
+          },
+        }
+        match self.app.read_cluster(ctx, target, request.NativeID) {
+          Ok(properties) => Ok(read_success(
+            TYPE_CLUSTER,
+            encode_properties(properties),
+          )),
+          Err(failure) => Ok(read_failure(TYPE_CLUSTER, failure.kind)),
+        }
+      },
+      _ => Ok(read_failure(
+        request.ResourceType,
+        domain.ErrorKind.InvalidRequest,
+      )),
+    }
   }
 
   #[allow(non_snake_case_function)]
