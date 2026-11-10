@@ -1,0 +1,34 @@
+// © 2026 Extropy Engineering
+//
+// SPDX-License-Identifier: MIT
+
+import "ports"
+
+pub struct Application {
+  reader: ports.ClusterReader,
+  lifecycle: ports.ClusterLifecycle,
+  node_power: ports.NodePowerController,
+  image_loader: ports.ImageLoader,
+  gpu_compat: ports.GpuCompatController,
+  verifier: ports.ClusterVerifier,
+  ops: mut OperationRegistry,
+}
+
+pub fn new(
+  reader: ports.ClusterReader,
+  lifecycle: ports.ClusterLifecycle,
+  node_power: ports.NodePowerController,
+  image_loader: ports.ImageLoader,
+  gpu_compat: ports.GpuCompatController,
+  verifier: ports.ClusterVerifier,
+) -> mut Application {
+  Application {
+    reader,
+    lifecycle,
+    node_power,
+    image_loader,
+    gpu_compat,
+    verifier,
+    ops: OperationRegistry.new(),
+  }
+}

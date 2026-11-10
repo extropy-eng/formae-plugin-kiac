@@ -1,0 +1,55 @@
+// © 2026 Extropy Engineering
+//
+// SPDX-License-Identifier: MIT
+
+import "domain"
+
+pub enum CreateStatus {
+  Success,
+  InProgress,
+}
+
+pub enum StatusState {
+  InProgress,
+  Success,
+  Failure,
+}
+
+#[equality]
+pub enum ResourceProperties {
+  None,
+  Cluster(domain.Cluster),
+  Node { cluster: string, node: domain.Node },
+  GpuCompat(domain.GpuCompat),
+  GpuCompatState(domain.GpuCompatState),
+  Image(domain.Image),
+  Verification(domain.Verification),
+  Resume(domain.Resume),
+}
+
+#[equality]
+pub struct CreateOutcome {
+  pub native_id: string,
+  pub request_id: string,
+  pub status: CreateStatus,
+  pub message: string,
+  pub properties: ResourceProperties,
+}
+
+#[equality]
+pub struct UpdateOutcome {
+  pub native_id: string,
+  pub properties: ResourceProperties,
+}
+
+pub struct DeleteOutcome {
+  pub native_id: string,
+  pub no_op: bool,
+}
+
+#[equality]
+pub enum StatusOutcome {
+  InProgress { native_id: string, message: string },
+  Success { native_id: string, properties: ResourceProperties },
+  Failure { failure: domain.Failure },
+}

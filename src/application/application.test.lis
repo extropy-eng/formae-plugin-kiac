@@ -2,6 +2,7 @@
 //
 // SPDX-License-Identifier: MIT
 
+import "go:context"
 import "go:time"
 
 import "domain"
@@ -36,4 +37,141 @@ fn registry_stores_handle_by_cluster() {
 fn registry_returns_none_for_unknown_cluster() {
   let mut registry = OperationRegistry.new()
   assert registry.get("missing").is_none()
+}
+
+struct FakeClusterReader { clusters: Slice<domain.Cluster> }
+
+impl FakeClusterReader {
+  fn list_clusters(
+    self: FakeClusterReader,
+    _ctx: context.Context,
+    _target: domain.TargetConfig,
+  ) -> Result<Slice<domain.Cluster>, domain.Failure> {
+    Ok(self.clusters)
+  }
+
+  fn find_cluster(
+    self: FakeClusterReader,
+    _ctx: context.Context,
+    _target: domain.TargetConfig,
+    name: string,
+  ) -> Result<Option<domain.Cluster>, domain.Failure> {
+    Ok(self.clusters.find(|cluster| cluster.name == name))
+  }
+}
+
+struct FakeLifecycle {}
+
+impl FakeLifecycle {
+  fn start_create_cluster(
+    self: FakeLifecycle,
+    _target: domain.TargetConfig,
+    _spec: domain.ClusterSpec,
+  ) -> ports.OperationHandle {
+    FakeHandle { .. }
+  }
+
+  fn start_resume_cluster(
+    self: FakeLifecycle,
+    _target: domain.TargetConfig,
+    _cluster: string,
+  ) -> ports.OperationHandle {
+    FakeHandle { .. }
+  }
+
+  fn delete_cluster(
+    self: FakeLifecycle,
+    _ctx: context.Context,
+    _target: domain.TargetConfig,
+    _name: string,
+  ) -> Result<(), domain.Failure> {
+    Ok(())
+  }
+}
+
+struct FakeNodePower {}
+
+impl FakeNodePower {
+  fn set_node_power(
+    self: FakeNodePower,
+    _ctx: context.Context,
+    _target: domain.TargetConfig,
+    _cluster: string,
+    _node: string,
+    _power: domain.NodePower,
+  ) -> Result<(), domain.Failure> {
+    Ok(())
+  }
+}
+
+struct FakeImageLoader {}
+
+impl FakeImageLoader {
+  fn load_image(
+    self: FakeImageLoader,
+    _ctx: context.Context,
+    _target: domain.TargetConfig,
+    _cluster: string,
+    _image: string,
+  ) -> Result<(), domain.Failure> {
+    Ok(())
+  }
+}
+
+struct FakeGpuCompat {}
+
+impl FakeGpuCompat {
+  fn set_gpu_compat(
+    self: FakeGpuCompat,
+    _ctx: context.Context,
+    _target: domain.TargetConfig,
+    _cluster: string,
+    _namespace: string,
+    _enabled: bool,
+    _rotate: bool,
+  ) -> Result<(), domain.Failure> {
+    Ok(())
+  }
+}
+
+struct FakeVerifier {}
+
+impl FakeVerifier {
+  fn verify_cluster(
+    self: FakeVerifier,
+    _ctx: context.Context,
+    _target: domain.TargetConfig,
+    _cluster: string,
+  ) -> Result<domain.Verification, domain.Failure> {
+    Ok(domain.Verification { .. })
+  }
+}
+
+fn app_with_clusters(clusters: Slice<domain.Cluster>) -> mut Application {
+  new(
+    FakeClusterReader { clusters },
+    FakeLifecycle { .. },
+    FakeNodePower { .. },
+    FakeImageLoader { .. },
+    FakeGpuCompat { .. },
+    FakeVerifier { .. },
+  )
+}
+
+#[test("a new application starts with an empty operation registry")]
+fn new_application_has_empty_registry() {
+  let mut app = app_with_clusters([])
+  assert app.ops.get("dev").is_none()
+}
+
+#[test("create outcomes compare as complete values")]
+fn create_outcomes_compare_as_values() {
+  let actual = CreateOutcome {
+    native_id: "dev",
+    request_id: "dev",
+    status: CreateStatus.InProgress,
+    message: "creating cluster dev",
+    properties: ResourceProperties.None,
+  }
+  assert actual.equals(CreateOutcome { ..actual })
 }
