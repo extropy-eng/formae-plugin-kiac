@@ -45,3 +45,15 @@ fn cluster_equality_includes_nodes() {
   }
   assert actual.equals(Cluster { nodes: [node], ..actual })
 }
+
+#[test("running and stopped map to node power")]
+fn known_node_states_map_to_power() {
+  assert node_power_for("running") == Some(NodePower.Running)
+  assert node_power_for("stopped") == Some(NodePower.Stopped)
+}
+
+#[test("an unknown node state has no power mapping")]
+fn unknown_node_state_has_no_power() {
+  assert node_power_for("paused") == None
+  assert node_power_for("") == None
+}
