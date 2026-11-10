@@ -617,3 +617,37 @@ fn sdk_create_verification() -> Result<(), error> {
   assert progress.NativeID == "dev"
   Ok(())
 }
+
+#[test("the SDK read path returns the verification snapshot")]
+fn sdk_read_verification() -> Result<(), error> {
+  let payload = "{
+    \"healthy\": true,
+    \"checkedAt\": \"2026-10-04T20:01:06Z\",
+    \"duration\": \"2s\",
+    \"checks\": [
+      {
+        \"id\": \"kubernetes.api\",
+        \"name\": \"Kubernetes API\",
+        \"status\": \"pass\",
+        \"detail\": \"ok\"
+      }
+    ]
+  }"
+  let path = fake_kiac(f"echo '{payload}'")?
+  let mut plugin = plugin_with_kiac(path)
+  let request = resource.ReadRequest {
+    NativeID: "dev",
+    ResourceType: TYPE_VERIFICATION,
+    TargetConfig: target_for(path),
+    PriorProperties: raw_message(""),
+  }
+  let result = plugin.Read(context.Background(), &request)?
+  assert result.ErrorCode == resource.OperationErrorCodeNotSet
+  let mut actual: VerificationOutput = VerificationOutput { .. }
+  json.Unmarshal(result.Properties as Slice<byte>, &actual)?
+  assert actual.cluster_name == "dev"
+  assert actual.healthy
+  assert actual.checks.length() == 1
+  assert actual.checks[0].id == "kubernetes.api"
+  Ok(())
+}

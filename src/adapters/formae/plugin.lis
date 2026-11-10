@@ -182,6 +182,21 @@ impl Plugin {
           Err(failure) => Ok(read_failure(TYPE_IMAGE, failure.kind)),
         }
       },
+      TYPE_VERIFICATION => {
+        let target = match parse_target(request.TargetConfig) {
+          Ok(target) => target,
+          Err(failure) => {
+            return Ok(read_failure(TYPE_VERIFICATION, failure.kind))
+          },
+        }
+        match self.app.read_verification(ctx, target, request.NativeID) {
+          Ok(properties) => Ok(read_success(
+            TYPE_VERIFICATION,
+            encode_properties(properties),
+          )),
+          Err(failure) => Ok(read_failure(TYPE_VERIFICATION, failure.kind)),
+        }
+      },
       _ => Ok(read_failure(
         request.ResourceType,
         domain.ErrorKind.InvalidRequest,

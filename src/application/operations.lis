@@ -7,6 +7,16 @@ import "go:context"
 import "domain"
 
 impl Application {
+  pub fn read_verification(
+    self: mut Ref<Application>,
+    ctx: context.Context,
+    target: domain.TargetConfig,
+    native_id: string,
+  ) -> Result<ResourceProperties, domain.Failure> {
+    let verification = self.verifier.verify_cluster(ctx, target, native_id)?
+    Ok(ResourceProperties.Verification(verification))
+  }
+
   pub fn create_verification(
     self: Ref<Application>,
     spec: domain.VerificationSpec,

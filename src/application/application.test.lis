@@ -808,3 +808,51 @@ fn create_verification_returns_cluster_id() -> Result<(), error> {
   assert actual.equals(expected)
   Ok(())
 }
+
+struct RecordingVerifier {}
+
+impl RecordingVerifier {
+  fn verify_cluster(
+    self: RecordingVerifier,
+    _ctx: context.Context,
+    _target: domain.TargetConfig,
+    cluster: string,
+  ) -> Result<domain.Verification, domain.Failure> {
+    Ok(
+      domain.Verification {
+        cluster_name: cluster,
+        healthy: true,
+        checked_at: "2026-10-04T20:01:06Z",
+        duration: "2s",
+        checks: [],
+      },
+    )
+  }
+}
+
+fn app_with_fake_verification() -> (mut Application, RecordingVerifier) {
+  (
+    new(
+      FakeClusterReader { clusters: [], start_calls: [] },
+      FakeLifecycle { .. },
+      FakeNodePower { .. },
+      FakeImageLoader { .. },
+      FakeGpuCompat { .. },
+      RecordingVerifier { .. },
+    ),
+    RecordingVerifier { .. },
+  )
+}
+
+#[test("reading verification returns the health snapshot")]
+fn read_verification_returns_health_snapshot() -> Result<(), error> {
+  let (app, _fake) = app_with_fake_verification()
+  let mut app = app
+  let actual = app.read_verification(context.Background(), target(), "dev")?
+  let ResourceProperties.Verification(verification) = actual else {
+    assert false
+    return Ok(())
+  }
+  assert verification.cluster_name == "dev"
+  Ok(())
+}
