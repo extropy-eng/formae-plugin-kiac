@@ -461,3 +461,20 @@ fn sdk_create_gpu_compat() -> Result<(), error> {
   )
   Ok(())
 }
+
+#[test("the SDK read path omits GPU write-only fields")]
+fn sdk_read_gpu_compat_omits_write_only_fields() -> Result<(), error> {
+  let mut plugin = plugin_with_kiac("/bin/true")
+  let request = resource.ReadRequest {
+    NativeID: "dev/default",
+    ResourceType: TYPE_GPU_COMPAT,
+    TargetConfig: raw_message("{}"),
+    PriorProperties: raw_message(""),
+  }
+  let result = plugin.Read(context.Background(), &request)?
+  assert result.ErrorCode == resource.OperationErrorCodeNotSet
+  assert result.Properties.contains("\"namespace\":\"default\"")
+  assert !result.Properties.contains("enabled")
+  assert !result.Properties.contains("rotateCertificate")
+  Ok(())
+}

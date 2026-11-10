@@ -671,3 +671,20 @@ fn create_gpu_compat_enables() -> Result<(), error> {
   assert fake.calls.*.equals(["enable dev/default rotate"])
   Ok(())
 }
+
+#[test("reading GPU compatibility returns only observable fields")]
+fn read_gpu_compat_returns_observable_fields() -> Result<(), error> {
+  let app = app_with_clusters([])
+  let actual = app.read_gpu_compat("dev/default")?
+  let ResourceProperties.GpuCompatState(state) = actual else {
+    assert false
+    return Ok(())
+  }
+  assert state ==
+  domain.GpuCompatState {
+    id: "dev/default",
+    cluster_name: "dev",
+    namespace: "default",
+  }
+  Ok(())
+}

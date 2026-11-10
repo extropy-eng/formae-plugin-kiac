@@ -7,6 +7,16 @@ import "go:context"
 import "domain"
 
 impl Application {
+  pub fn read_gpu_compat(
+    self: Ref<Application>,
+    native_id: string,
+  ) -> Result<ResourceProperties, domain.Failure> {
+    let (cluster_name, namespace) = domain.split_id(native_id)
+    Ok(ResourceProperties.GpuCompatState(
+      domain.GpuCompatState { id: native_id, cluster_name, namespace },
+    ))
+  }
+
   pub fn create_gpu_compat(
     self: mut Ref<Application>,
     ctx: context.Context,
