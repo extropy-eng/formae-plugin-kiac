@@ -1,0 +1,78 @@
+// © 2026 Extropy Engineering
+//
+// SPDX-License-Identifier: MIT
+
+import "go:bytes"
+import "go:os/exec"
+import "go:sync"
+import "go:time"
+
+import "domain"
+import "ports"
+
+struct ProcessState {
+  done: bool,
+  error: Option<string>,
+  started_at: time.Time,
+  lock: sync.Mutex,
+}
+
+pub struct ProcessHandle { state: mut Ref<ProcessState> }
+
+impl ProcessHandle {
+  pub fn snapshot(self: mut Ref<ProcessHandle>) -> domain.ProcessSnapshot {
+    self.state.lock.Lock()
+    let done = self.state.done
+    let error = self.state.error
+    let started_at = self.state.started_at
+    self.state.lock.Unlock()
+    domain.ProcessSnapshot { done, error, started_at }
+  }
+}
+
+pub fn start_process(
+  target: domain.TargetConfig,
+  args: Slice<string>,
+) -> ports.OperationHandle {
+  let mut state = ProcessState {
+    done: false,
+    error: None,
+    started_at: time.Now(),
+    lock: sync.Mutex { .. },
+  }
+  let mut handle = ProcessHandle { state: &state }
+  let mut stderr = bytes.Buffer { .. }
+
+  let mut command = exec.Command(target.kiac_path, args...)
+  command.Stderr = Some(&stderr)
+
+  match command.Start() {
+    Ok(_) => {
+      task {
+        let outcome = command.Wait()
+        state.lock.Lock()
+        match outcome {
+          Ok(_) => {
+            state.done = true
+          },
+          Err(err) => {
+            state.error = Some(domain.first_non_empty([
+              stderr.String(),
+              err.Error(),
+            ]))
+            state.done = true
+          },
+        }
+        state.lock.Unlock()
+      }
+    },
+    Err(err) => {
+      state.lock.Lock()
+      state.error = Some(err.Error())
+      state.done = true
+      state.lock.Unlock()
+    },
+  }
+
+  &handle
+}

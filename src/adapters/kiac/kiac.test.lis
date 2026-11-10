@@ -6,8 +6,11 @@ import "go:context"
 import "go:encoding/json"
 import "go:os"
 import "go:path/filepath"
+import "go:strings"
+import "go:time"
 
 import "domain"
+import "ports"
 
 #[test("stderr containing already exists maps to AlreadyExists")]
 fn already_exists_stderr_maps_to_already_exists() {
@@ -53,6 +56,35 @@ fn expect_failure<T>(result: Result<T, domain.Failure>) -> domain.Failure {
 
 fn target_with_fake_kiac(body: string) -> Result<domain.TargetConfig, error> {
   Ok(domain.TargetConfig { kiac_path: fake_kiac(body)?, .. })
+}
+
+fn temp_file(name: string) -> Result<string, error> {
+  let dir = os.MkdirTemp("", "kiac-test")?
+  Ok(filepath.Join(dir, name))
+}
+
+fn read_text(path: string) -> Result<string, error> {
+  Ok((os.ReadFile(path)?) as string)
+}
+
+fn wait_for_file_contains(path: string, needle: string) -> string {
+  for _i in 0..200 {
+    let text = read_text(path).unwrap_or("")
+    if text.contains(needle) { return text }
+    time.Sleep(10 * time.Millisecond)
+  }
+  ""
+}
+
+fn wait_for_handle(
+  handle: ports.OperationHandle,
+) -> Result<domain.ProcessSnapshot, error> {
+  for _i in 0..200 {
+    let snapshot = handle.snapshot()
+    if snapshot.done { return Ok(snapshot) }
+    time.Sleep(10 * time.Millisecond)
+  }
+  Err(domain.fail(domain.ErrorKind.InternalFailure, "handle did not finish"))
 }
 
 #[test("the runner returns captured stdout")]
@@ -201,6 +233,36 @@ fn k3s_clusters_omit_cni() {
     "2",
   ]
   assert actual.equals(expected)
+}
+
+#[test("a cluster create runs the expected command in the background")]
+fn cluster_create_runs_in_background() -> Result<(), error> {
+  let log_file = temp_file("args")?
+  let target = target_with_fake_kiac(
+    f"printf '%s\\n' \"$*\" >> {log_file}; sleep 0.1",
+  )?
+  let handle = KiacCli { .. }.start_create_cluster(
+    target,
+    domain.ClusterSpec { name: "dev", .. },
+  )
+  let seen = wait_for_file_contains(log_file, "create cluster --name dev")
+  assert strings.TrimSpace(seen) == "create cluster --name dev"
+  let snapshot = wait_for_handle(handle)?
+  assert snapshot.done
+  assert snapshot.error.is_none()
+  Ok(())
+}
+
+#[test("a failed cluster create start is reported by the snapshot")]
+fn failed_cluster_create_start_is_reported() {
+  let target = domain.TargetConfig { kiac_path: "/does/not/exist/kiac", .. }
+  let handle = KiacCli { .. }.start_create_cluster(
+    target,
+    domain.ClusterSpec { name: "dev", .. },
+  )
+  let snapshot = handle.snapshot()
+  assert snapshot.done
+  assert snapshot.error.is_some()
 }
 
 #[test("cluster argv includes GPU, boolean, mount, and publish flags")]

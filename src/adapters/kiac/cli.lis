@@ -7,8 +7,19 @@ import "go:encoding/json"
 import "go:strings"
 
 import "domain"
+import "ports"
 
 pub struct KiacCli {}
+
+impl KiacCli {
+  pub fn start_create_cluster(
+    self: KiacCli,
+    target: domain.TargetConfig,
+    spec: domain.ClusterSpec,
+  ) -> ports.OperationHandle {
+    start_process(target, cluster_create_args(spec))
+  }
+}
 
 fn fetch_clusters(
   ctx: context.Context,
