@@ -1,0 +1,223 @@
+// © 2026 Extropy Engineering
+//
+// SPDX-License-Identifier: MIT
+
+import "go:encoding/json"
+import "go:github.com/platform-engineering-labs/formae/pkg/plugin/resource"
+
+import "application"
+import "domain"
+
+pub fn raw_message(text: string) -> mut json.RawMessage {
+  let mut encoded = (text as Slice<byte>).clone()
+  json.RawMessage(encoded)
+}
+
+pub fn sdk_code(kind: domain.ErrorKind) -> resource.OperationErrorCode {
+  match kind {
+    domain.ErrorKind.InvalidRequest => resource.OperationErrorCodeInvalidRequest,
+    domain.ErrorKind.NotFound => resource.OperationErrorCodeNotFound,
+    domain.ErrorKind.DependencyFailure => resource.OperationErrorCodeDependencyFailure,
+    domain.ErrorKind.AlreadyExists => resource.OperationErrorCodeAlreadyExists,
+    domain.ErrorKind.ServiceTimeout => resource.OperationErrorCodeServiceTimeout,
+    domain.ErrorKind.AccessDenied => resource.OperationErrorCodeAccessDenied,
+    domain.ErrorKind.GeneralServiceException => resource.OperationErrorCodeGeneralServiceException,
+    domain.ErrorKind.NotUpdatable => resource.OperationErrorCodeNotUpdatable,
+    domain.ErrorKind.InternalFailure => resource.OperationErrorCodeInternalFailure,
+  }
+}
+
+fn progress(
+  operation: resource.Operation,
+  status: resource.OperationStatus,
+  request_id: string,
+  native_id: string,
+  properties: mut json.RawMessage,
+  error_code: resource.OperationErrorCode,
+  message: string,
+) -> mut Ref<resource.ProgressResult> {
+  let mut progress = resource.ProgressResult {
+    Operation: operation,
+    OperationStatus: status,
+    RequestID: request_id,
+    NativeID: native_id,
+    ResourceProperties: properties,
+    ErrorCode: error_code,
+    StatusMessage: message,
+  }
+  &progress
+}
+
+fn failure_progress(
+  operation: resource.Operation,
+  failure: domain.Failure,
+) -> mut Ref<resource.ProgressResult> {
+  progress(
+    operation,
+    resource.OperationStatusFailure,
+    "",
+    "",
+    raw_message(""),
+    sdk_code(failure.kind),
+    failure.message,
+  )
+}
+
+pub fn create_result(
+  outcome: application.CreateOutcome,
+  encode: fn(application.ResourceProperties) -> string,
+) -> mut Ref<resource.CreateResult> {
+  let (status, properties) = match outcome.status {
+    application.CreateStatus.Success => (
+      resource.OperationStatusSuccess,
+      raw_message(encode(outcome.properties)),
+    ),
+    application.CreateStatus.InProgress => (
+      resource.OperationStatusInProgress,
+      raw_message(""),
+    ),
+  }
+  let mut result = resource.CreateResult {
+    ProgressResult: Some(progress(
+      resource.OperationCreate,
+      status,
+      outcome.request_id,
+      outcome.native_id,
+      properties,
+      resource.OperationErrorCodeNotSet,
+      outcome.message,
+    )),
+  }
+  &result
+}
+
+pub fn create_failure(failure: domain.Failure) -> mut Ref<resource.CreateResult> {
+  let mut result = resource.CreateResult {
+    ProgressResult: Some(failure_progress(resource.OperationCreate, failure)),
+  }
+  &result
+}
+
+pub fn read_success(
+  resource_type: string,
+  properties: string,
+) -> mut Ref<resource.ReadResult> {
+  let mut result = resource.ReadResult {
+    ResourceType: resource_type,
+    Properties: properties,
+    ErrorCode: resource.OperationErrorCodeNotSet,
+  }
+  &result
+}
+
+pub fn read_failure(
+  resource_type: string,
+  kind: domain.ErrorKind,
+) -> mut Ref<resource.ReadResult> {
+  let mut result = resource.ReadResult {
+    ResourceType: resource_type,
+    Properties: "",
+    ErrorCode: sdk_code(kind),
+  }
+  &result
+}
+
+pub fn update_result(
+  outcome: application.UpdateOutcome,
+  encode: fn(application.ResourceProperties) -> string,
+) -> mut Ref<resource.UpdateResult> {
+  let mut result = resource.UpdateResult {
+    ProgressResult: Some(progress(
+      resource.OperationUpdate,
+      resource.OperationStatusSuccess,
+      "",
+      outcome.native_id,
+      raw_message(encode(outcome.properties)),
+      resource.OperationErrorCodeNotSet,
+      "",
+    )),
+  }
+  &result
+}
+
+pub fn update_failure(failure: domain.Failure) -> mut Ref<resource.UpdateResult> {
+  let mut result = resource.UpdateResult {
+    ProgressResult: Some(failure_progress(resource.OperationUpdate, failure)),
+  }
+  &result
+}
+
+pub fn delete_result(
+  outcome: application.DeleteOutcome,
+) -> mut Ref<resource.DeleteResult> {
+  let operation = if outcome.no_op {
+    resource.OperationNoOp
+  } else {
+    resource.OperationDelete
+  }
+  let mut result = resource.DeleteResult {
+    ProgressResult: Some(progress(
+      operation,
+      resource.OperationStatusSuccess,
+      "",
+      outcome.native_id,
+      raw_message(""),
+      resource.OperationErrorCodeNotSet,
+      "",
+    )),
+  }
+  &result
+}
+
+pub fn delete_failure(failure: domain.Failure) -> mut Ref<resource.DeleteResult> {
+  let mut result = resource.DeleteResult {
+    ProgressResult: Some(failure_progress(resource.OperationDelete, failure)),
+  }
+  &result
+}
+
+pub fn status_result(
+  outcome: application.StatusOutcome,
+  request: resource.StatusRequest,
+  encode: fn(application.ResourceProperties) -> string,
+) -> mut Ref<resource.StatusResult> {
+  let mut progress_ref = match outcome {
+    application.StatusOutcome.InProgress { native_id, message } => progress(
+      resource.OperationCheckStatus,
+      resource.OperationStatusInProgress,
+      request.RequestID,
+      native_id,
+      raw_message(""),
+      resource.OperationErrorCodeNotSet,
+      message,
+    ),
+    application.StatusOutcome.Success { native_id, properties } => progress(
+      resource.OperationCheckStatus,
+      resource.OperationStatusSuccess,
+      request.RequestID,
+      native_id,
+      raw_message(encode(properties)),
+      resource.OperationErrorCodeNotSet,
+      "",
+    ),
+    application.StatusOutcome.Failure { failure } => progress(
+      resource.OperationCheckStatus,
+      resource.OperationStatusFailure,
+      request.RequestID,
+      request.NativeID,
+      raw_message(""),
+      sdk_code(failure.kind),
+      failure.message,
+    ),
+  }
+  let mut result = resource.StatusResult { ProgressResult: Some(progress_ref) }
+  &result
+}
+
+pub fn list_result(ids: Slice<string>) -> mut Ref<resource.ListResult> {
+  let mut result = resource.ListResult {
+    NativeIDs: ids.clone(),
+    NextPageToken: None,
+  }
+  &result
+}
