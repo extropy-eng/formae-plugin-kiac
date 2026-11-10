@@ -36,6 +36,25 @@ impl KiacCli {
   ) -> Result<(), domain.Failure> {
     run_kiac(ctx, target, ["delete", "cluster", "--name", name]).map(|_| ())
   }
+
+  pub fn set_node_power(
+    self: KiacCli,
+    ctx: context.Context,
+    target: domain.TargetConfig,
+    cluster: string,
+    node: string,
+    power: domain.NodePower,
+  ) -> Result<(), domain.Failure> {
+    run_kiac(ctx, target, [
+        node_power_verb(power),
+        "node",
+        node,
+        "--name",
+        cluster,
+      ]).map(
+      |_| (),
+    )
+  }
 }
 
 fn fetch_clusters(

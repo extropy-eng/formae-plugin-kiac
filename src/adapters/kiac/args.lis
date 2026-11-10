@@ -4,6 +4,13 @@
 
 import "domain"
 
+pub fn node_power_verb(power: domain.NodePower) -> string {
+  match power {
+    domain.NodePower.Running => "start",
+    domain.NodePower.Stopped => "stop",
+  }
+}
+
 pub fn cluster_create_args(spec: domain.ClusterSpec) -> Slice<string> {
   let mut args = ["create", "cluster", "--name", spec.name]
 
