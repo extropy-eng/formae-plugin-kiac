@@ -25,13 +25,6 @@ fn fail(code: resource.OperationErrorCode, message: string) -> Failure {
   Failure { code, message }
 }
 
-/// Split "<left>/<right>" on the first slash. With no slash, left is empty
-/// and right is the whole id.
-fn split_id(id: string) -> (string, string) {
-  let parts = strings.SplitN(id, "/", 2)
-  if parts.length() == 2 { (parts[0], parts[1]) } else { ("", id) }
-}
-
 fn first_non_empty(values: Slice<string>) -> string {
   for value in values {
     let trimmed = strings.TrimSpace(value)

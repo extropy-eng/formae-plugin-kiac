@@ -1,0 +1,12 @@
+// © 2026 Extropy Engineering
+//
+// SPDX-License-Identifier: MIT
+
+import "go:strings"
+
+/// Split "<left>/<right>" on the first slash. With no slash, left is empty
+/// and right is the whole id.
+pub fn split_id(id: string) -> (string, string) {
+  let parts = strings.SplitN(id, "/", 2)
+  if parts.length() == 2 { (parts[0], parts[1]) } else { ("", id) }
+}
