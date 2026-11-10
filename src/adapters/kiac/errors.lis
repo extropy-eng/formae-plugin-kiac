@@ -1,0 +1,20 @@
+// © 2026 Extropy Engineering
+//
+// SPDX-License-Identifier: MIT
+
+import "go:strings"
+
+import "domain"
+
+pub fn classify_error(stderr: string) -> domain.ErrorKind {
+  let rules = [
+    (["already exist"], domain.ErrorKind.AlreadyExists),
+    (["not found", "no such"], domain.ErrorKind.NotFound),
+    (["timed out", "timeout"], domain.ErrorKind.ServiceTimeout),
+    (["permission", "denied"], domain.ErrorKind.AccessDenied),
+  ]
+  let lowercase_error = strings.ToLower(stderr)
+  rules
+    .find(|rule| rule.0.any(|needle| lowercase_error.contains(needle)))
+    .map_or(domain.ErrorKind.GeneralServiceException, |rule| rule.1)
+}
