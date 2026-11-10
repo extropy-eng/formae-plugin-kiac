@@ -139,13 +139,36 @@ impl Plugin {
   #[allow(non_snake_case_function)]
   pub fn Update(
     self: mut Ref<Plugin>,
-    _ctx: context.Context,
+    ctx: context.Context,
     request: Ref<resource.UpdateRequest>,
   ) -> Result<mut Ref<resource.UpdateResult>, error> {
-    Ok(update_failure(domain.fail(
-      domain.ErrorKind.NotUpdatable,
-      f"unsupported resource type: {request.ResourceType}",
-    )))
+    match request.ResourceType {
+      TYPE_NODE => {
+        let target = match parse_target(request.TargetConfig) {
+          Ok(target) => target,
+          Err(failure) => return Ok(update_failure(failure)),
+        }
+        let prior = decode_prior_node(request.PriorProperties)
+        let desired = match decode_node_props(request.DesiredProperties) {
+          Ok(desired) => desired,
+          Err(failure) => return Ok(update_failure(failure)),
+        }
+        match self.app.update_node(
+          ctx,
+          target,
+          request.NativeID,
+          prior,
+          desired,
+        ) {
+          Ok(outcome) => Ok(update_result(outcome, encode_properties)),
+          Err(failure) => Ok(update_failure(failure)),
+        }
+      },
+      _ => Ok(update_failure(domain.fail(
+        domain.ErrorKind.NotUpdatable,
+        f"unsupported resource type: {request.ResourceType}",
+      ))),
+    }
   }
 
   #[allow(non_snake_case_function)]

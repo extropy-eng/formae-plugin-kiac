@@ -15,6 +15,52 @@ fn split_node(spec: domain.NodeSpec) -> (string, string) {
 }
 
 impl Application {
+  pub fn update_node(
+    self: mut Ref<Application>,
+    ctx: context.Context,
+    target: domain.TargetConfig,
+    native_id: string,
+    prior: domain.NodeSpec,
+    desired: domain.NodeSpec,
+  ) -> Result<UpdateOutcome, domain.Failure> {
+    let (cluster_name, node_name) = if !desired.cluster_name.is_empty() && !desired.name.is_empty() {
+      (desired.cluster_name, desired.name)
+    } else {
+      domain.split_id(native_id)
+    }
+    let resolved_id = if native_id.is_empty() {
+      f"{cluster_name}/{node_name}"
+    } else {
+      native_id
+    }
+    if desired.state.is_empty() || desired.state == prior.state {
+      return Ok(
+        UpdateOutcome {
+          native_id: resolved_id,
+          properties: ResourceProperties.None,
+        },
+      )
+    }
+    let power = match domain.node_power_for(desired.state) {
+      Some(power) => power,
+      None => {
+        return Err(domain.fail(
+          domain.ErrorKind.InvalidRequest,
+          "state must be running or stopped",
+        ))
+      },
+    }
+    self.node_power.set_node_power(ctx, target, cluster_name, node_name, power)?
+    let properties = match self.reader.find_cluster(ctx, target, cluster_name)? {
+      Some(parent) => match parent.nodes.find(|node| node.name == node_name) {
+        Some(node) => ResourceProperties.Node { cluster: cluster_name, node },
+        None => ResourceProperties.None,
+      },
+      None => ResourceProperties.None,
+    }
+    Ok(UpdateOutcome { native_id: resolved_id, properties })
+  }
+
   pub fn read_node(
     self: mut Ref<Application>,
     ctx: context.Context,
