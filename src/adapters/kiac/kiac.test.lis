@@ -178,3 +178,78 @@ fn find_missing_cluster_returns_none() -> Result<(), error> {
   assert found.is_none()
   Ok(())
 }
+
+#[test("k3s clusters omit the cni flag")]
+fn k3s_clusters_omit_cni() {
+  let actual = cluster_create_args(
+    domain.ClusterSpec {
+      name: "dev",
+      distro: "k3s",
+      cni: "cilium",
+      workers: 2,
+      ..,
+    },
+  )
+  let expected = [
+    "create",
+    "cluster",
+    "--name",
+    "dev",
+    "--distro",
+    "k3s",
+    "--workers",
+    "2",
+  ]
+  assert actual.equals(expected)
+}
+
+#[test("cluster argv includes GPU, boolean, mount, and publish flags")]
+fn cluster_argv_includes_all_optional_flags() {
+  let actual = cluster_create_args(
+    domain.ClusterSpec {
+      name: "dev",
+      distro: "kubeadm",
+      cni: "cilium",
+      gpu_workers: 2,
+      gpu_image: "gpu:latest",
+      gateway: true,
+      no_lb: true,
+      dns: ["1.1.1.1"],
+      mounts: [
+        domain.MountSpec { source: "/a", target: "/b", readonly: true, .. },
+      ],
+      publish: [
+        domain.PortMappingSpec {
+          host_ip: "127.0.0.1",
+          host_port: 8080,
+          container_port: 80,
+          protocol: "tcp",
+        },
+      ],
+      ..,
+    },
+  )
+  let expected = [
+    "create",
+    "cluster",
+    "--name",
+    "dev",
+    "--distro",
+    "kubeadm",
+    "--cni",
+    "cilium",
+    "--gpu-workers",
+    "2",
+    "--gpu-image",
+    "gpu:latest",
+    "--gateway",
+    "--no-lb",
+    "--dns",
+    "1.1.1.1",
+    "--mount",
+    "type=bind,source=/a,target=/b,readonly",
+    "-p",
+    "127.0.0.1:8080:80/tcp",
+  ]
+  assert actual.equals(expected)
+}

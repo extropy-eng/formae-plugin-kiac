@@ -1,0 +1,64 @@
+// © 2026 Extropy Engineering
+//
+// SPDX-License-Identifier: MIT
+
+import "domain"
+
+pub fn cluster_create_args(spec: domain.ClusterSpec) -> Slice<string> {
+  let mut args = ["create", "cluster", "--name", spec.name]
+
+  if !spec.distro.is_empty() {
+    args = args.append("--distro")
+    args = args.append(spec.distro)
+  }
+
+  if spec.distro != "k3s" && !spec.cni.is_empty() {
+    args = args.append("--cni")
+    args = args.append(spec.cni)
+  }
+
+  if spec.workers > 0 {
+    args = args.append("--workers")
+    args = args.append(f"{spec.workers}")
+  }
+
+  if spec.gpu_workers > 0 {
+    args = args.append("--gpu-workers")
+    args = args.append(f"{spec.gpu_workers}")
+  }
+
+  if !spec.gpu_image.is_empty() {
+    args = args.append("--gpu-image")
+    args = args.append(spec.gpu_image)
+  }
+
+  if spec.gateway { args = args.append("--gateway") }
+  if spec.no_lb { args = args.append("--no-lb") }
+
+  for dns in spec.dns {
+    args = args.append("--dns")
+    args = args.append(dns)
+  }
+
+  for mount in spec.mounts {
+    let readonly = if mount.readonly { ",readonly" } else { "" }
+    args = args.append("--mount")
+    args = args.append(
+      f"type=bind,source={mount.source},target={mount.target}{readonly}",
+    )
+  }
+
+  for mapping in spec.publish {
+    let host = if mapping.host_ip.is_empty() {
+      ""
+    } else {
+      f"{mapping.host_ip}:"
+    }
+    args = args.append("-p")
+    args = args.append(
+      f"{host}{mapping.host_port}:{mapping.container_port}/{mapping.protocol}",
+    )
+  }
+
+  args
+}
