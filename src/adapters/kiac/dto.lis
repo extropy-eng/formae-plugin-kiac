@@ -1,0 +1,46 @@
+// © 2026 Extropy Engineering
+//
+// SPDX-License-Identifier: MIT
+
+import "domain"
+
+#[json(camel_case)]
+pub struct KiacNode {
+  pub name: string,
+  pub state: string,
+  pub ip: string,
+  pub image: string,
+  pub created: string,
+}
+
+#[json(camel_case)]
+#[equality]
+pub struct KiacCluster {
+  pub name: string,
+  pub status: string,
+  pub running_nodes: int,
+  pub total_nodes: int,
+  pub k8s_version: string,
+  pub created: string,
+  pub nodes: Slice<KiacNode>,
+}
+
+impl KiacCluster {
+  pub fn to_domain(self) -> domain.Cluster {
+    domain.Cluster {
+      name: self.name,
+      status: self.status,
+      running_nodes: self.running_nodes,
+      total_nodes: self.total_nodes,
+      k8s_version: self.k8s_version,
+      created: self.created,
+      nodes: self.nodes.map(|node| domain.Node {
+        name: node.name,
+        state: node.state,
+        ip: node.ip,
+        image: node.image,
+        created: node.created,
+      }),
+    }
+  }
+}
