@@ -10,25 +10,6 @@ import "go:os/exec"
 import "go:strings"
 import "go:time"
 
-fn raw_message(text: string) -> mut json.RawMessage {
-  let mut encoded = (text as Slice<byte>).clone()
-  json.RawMessage(encoded)
-}
-
-/// Failure is an internal error that already knows its formae error code.
-#[allow(unused_struct_field)]
-struct Failure { code: resource.OperationErrorCode, message: string }
-
-impl Failure {
-  fn Error(self) -> string {
-    self.message
-  }
-}
-
-fn fail(code: resource.OperationErrorCode, message: string) -> Failure {
-  Failure { code, message }
-}
-
 // ------- target configuration -------
 
 #[json]
@@ -107,6 +88,19 @@ fn run_kiac(
   }
 }
 
+fn classify_error(stderr: string) -> resource.OperationErrorCode {
+  let rules = [
+    (["already exist"], resource.OperationErrorCodeAlreadyExists),
+    (["not found", "no such"], resource.OperationErrorCodeNotFound),
+    (["timed out", "timeout"], resource.OperationErrorCodeServiceTimeout),
+    (["permission", "denied"], resource.OperationErrorCodeAccessDenied),
+  ]
+  let lowercase_error = strings.ToLower(stderr)
+  rules
+    .find(|rule| rule.0.any(|needle| lowercase_error.contains(needle)))
+    .map_or(resource.OperationErrorCodeGeneralServiceException, |rule| rule.1)
+}
+
 // -------- cluster operations --------
 
 #[json(camel_case)]
@@ -158,34 +152,4 @@ fn find_cluster_by_name(
   name: string,
 ) -> Result<Option<KiacCluster>, Failure> {
   list_clusters(ctx, target).map(|clusters| clusters.find(|c| c.name == name))
-}
-
-// ---------- shared helpers ----------
-
-/// Split "<left>/<right>" on the first slash.
-/// With no slash, left is empty and right is the whole id.
-fn split_id(id: string) -> (string, string) {
-  let parts = strings.SplitN(id, "/", 2)
-  if parts.length() == 2 { (parts[0], parts[1]) } else { ("", id) }
-}
-
-fn first_non_empty(values: Slice<string>) -> string {
-  for value in values {
-    let trimmed = strings.TrimSpace(value)
-    if trimmed != "" { return trimmed }
-  }
-  ""
-}
-
-fn classify_error(stderr: string) -> resource.OperationErrorCode {
-  let rules = [
-    (["already exist"], resource.OperationErrorCodeAlreadyExists),
-    (["not found", "no such"], resource.OperationErrorCodeNotFound),
-    (["timed out", "timeout"], resource.OperationErrorCodeServiceTimeout),
-    (["permission", "denied"], resource.OperationErrorCodeAccessDenied),
-  ]
-  let lowercase_error = strings.ToLower(stderr)
-  rules
-    .find(|rule| rule.0.any(|needle| lowercase_error.contains(needle)))
-    .map_or(resource.OperationErrorCodeGeneralServiceException, |rule| rule.1)
 }
