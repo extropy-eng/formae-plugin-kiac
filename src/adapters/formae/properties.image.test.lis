@@ -1,0 +1,35 @@
+// © 2026 Extropy Engineering
+//
+// SPDX-License-Identifier: MIT
+
+import "application"
+import "domain"
+
+#[test("image names decode")]
+fn image_names_decode() -> Result<(), error> {
+  let image = decode_image(raw_message(
+    "{\"id\":\"dev/app:1\",\"clusterName\":\"dev\",\"image\":\"app:1\"}",
+  ))?
+  assert image.cluster_name == "dev"
+  Ok(())
+}
+
+#[test("decoded image spec carries its fields")]
+fn decoded_image_spec_carries_fields() -> Result<(), error> {
+  let image = decode_image(raw_message(
+    "{\"id\":\"dev/app:1\",\"clusterName\":\"dev\",\"image\":\"app:1\"}",
+  ))?
+  assert image ==
+  domain.ImageSpec { id: "dev/app:1", cluster_name: "dev", image: "app:1" }
+  Ok(())
+}
+
+#[test("encoded projections carry every declared field")]
+fn encoded_projections_carry_fields() {
+  let text = encode_properties(application.ResourceProperties.Image(
+    domain.Image { id: "dev/app:1", cluster_name: "dev", image: "app:1" },
+  ))
+  assert text.contains("\"id\":\"dev/app:1\"")
+  assert text.contains("\"clusterName\":\"dev\"")
+  assert text.contains("\"image\":\"app:1\"")
+}

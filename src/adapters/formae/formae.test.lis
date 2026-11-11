@@ -8,7 +8,6 @@ import "go:github.com/platform-engineering-labs/formae/pkg/model"
 import "go:github.com/platform-engineering-labs/formae/pkg/plugin/resource"
 import "go:time"
 
-import "application"
 import "domain"
 
 #[test("the plugin advertises namespace-scoped rate limiting")]
@@ -596,19 +595,6 @@ fn sdk_update_node() -> Result<(), error> {
   Ok(())
 }
 
-#[test("image names decode")]
-fn image_names_decode() -> Result<(), error> {
-  let image = decode_image(raw_message(
-    "{
-      \"id\": \"dev/app: 1\",
-      \"clusterName\": \"dev\",
-      \"image\": \"app:1\"
-    }",
-  ))?
-  assert image.cluster_name == "dev"
-  Ok(())
-}
-
 #[test("verification names decode")]
 fn verification_names_decode() {
   let verification = decode_verification(raw_message(
@@ -630,20 +616,6 @@ fn resume_names_decode() -> Result<(), error> {
   Ok(())
 }
 
-#[test("decoded image spec carries its fields")]
-fn decoded_image_spec_carries_fields() -> Result<(), error> {
-  let image = decode_image(raw_message(
-    "{
-      \"id\": \"dev/app:1\",
-      \"clusterName\": \"dev\",
-      \"image\": \"app:1\"
-    }",
-  ))?
-  assert image ==
-  domain.ImageSpec { id: "dev/app:1", cluster_name: "dev", image: "app:1" }
-  Ok(())
-}
-
 #[test("decoded resume spec carries its fields")]
 fn decoded_resume_spec_carries_fields() -> Result<(), error> {
   let resume = decode_resume(raw_message(
@@ -656,16 +628,6 @@ fn decoded_resume_spec_carries_fields() -> Result<(), error> {
   assert resume ==
   domain.ResumeSpec { id: "dev/n1", cluster_name: "dev", nonce: "n1" }
   Ok(())
-}
-
-#[test("encoded projections carry every declared field")]
-fn encoded_projections_carry_fields() {
-  let text = encode_properties(application.ResourceProperties.Image(
-    domain.Image { id: "dev/app:1", cluster_name: "dev", image: "app:1" },
-  ))
-  assert text.contains("\"id\":\"dev/app:1\"")
-  assert text.contains("\"clusterName\":\"dev\"")
-  assert text.contains("\"image\":\"app:1\"")
 }
 
 #[test("GPU delete does not reject a malformed target")]
