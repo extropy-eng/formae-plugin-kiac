@@ -1,0 +1,35 @@
+// © 2026 Extropy Engineering
+//
+// SPDX-License-Identifier: MIT
+
+import "go:context"
+
+import "domain"
+
+#[test("creating a node falls back to the native id")]
+fn create_node_falls_back_to_native_id() -> Result<(), error> {
+  let mut app = app_with_clusters([two_node_cluster()])
+  let actual = app.create_node(
+    context.Background(),
+    target(),
+    domain.NodeSpec { id: "dev/kiac-dev-worker-1", .. },
+  )?
+  assert actual.native_id == "dev/kiac-dev-worker-1"
+  assert actual.status == CreateStatus.Success
+  Ok(())
+}
+
+#[test("creating a node without its parent is a dependency failure")]
+fn create_node_requires_parent() {
+  let mut app = app_with_clusters([])
+  let failure = expect_failure(app.create_node(
+    context.Background(),
+    target(),
+    domain.NodeSpec { id: "dev/kiac-dev-worker-1", .. },
+  ))
+  assert failure ==
+  domain.Failure {
+    kind: domain.ErrorKind.DependencyFailure,
+    message: "parent cluster not found: dev",
+  }
+}
