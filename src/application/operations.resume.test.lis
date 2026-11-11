@@ -1,0 +1,52 @@
+// © 2026 Extropy Engineering
+//
+// SPDX-License-Identifier: MIT
+
+import "go:context"
+
+import "domain"
+
+fn app_with_fake_resume() -> mut Application {
+  app_with_clusters([])
+}
+
+#[test("creating resume starts an asynchronous operation")]
+fn create_resume_starts_async_operation() -> Result<(), error> {
+  let mut app = app_with_fake_resume()
+  let actual = app.create_resume(
+    context.Background(),
+    target(),
+    domain.ResumeSpec { id: "dev/n1", cluster_name: "dev", nonce: "n1" },
+  )?
+  let expected = CreateOutcome {
+    native_id: "dev/n1",
+    request_id: "dev",
+    status: CreateStatus.InProgress,
+    message: "resuming cluster dev",
+    properties: ResourceProperties.None,
+  }
+  assert actual.equals(expected)
+  assert app.ops.get("dev").is_some()
+  Ok(())
+}
+
+#[test("reading resume echoes the nonce id")]
+fn read_resume_echoes_nonce_id() -> Result<(), error> {
+  let app = app_with_clusters([])
+  let actual = app.read_resume("dev/n1")?
+  let ResourceProperties.Resume(resume) = actual else {
+    assert false
+    return Ok(())
+  }
+  assert resume ==
+  domain.Resume { id: "dev/n1", cluster_name: "dev", nonce: "" }
+  Ok(())
+}
+
+#[test("deleting resume is a no-op")]
+fn delete_resume_is_noop() -> Result<(), error> {
+  let app = app_with_clusters([])
+  let actual = app.delete_resume("dev/n1")?
+  assert actual == DeleteOutcome { native_id: "dev/n1", no_op: true }
+  Ok(())
+}
