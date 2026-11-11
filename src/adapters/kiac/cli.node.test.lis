@@ -1,0 +1,40 @@
+// © 2026 Extropy Engineering
+//
+// SPDX-License-Identifier: MIT
+
+import "go:context"
+import "go:strings"
+
+import "domain"
+
+#[test("running a node uses the start verb")]
+fn running_node_uses_start_verb() -> Result<(), error> {
+  let log_file = temp_file("args")?
+  let target = target_with_fake_kiac(f"printf '%s\\n' \"$*\" >> {log_file}")?
+  KiacCli { .. }.set_node_power(
+    context.Background(),
+    target,
+    "dev",
+    "cp",
+    domain.NodePower.Running,
+  )?
+  let seen = read_text(log_file)?
+  assert strings.TrimSpace(seen) == "start node cp --name dev"
+  Ok(())
+}
+
+#[test("stopping a node uses the stop verb")]
+fn stopping_node_uses_stop_verb() -> Result<(), error> {
+  let log_file = temp_file("args")?
+  let target = target_with_fake_kiac(f"printf '%s\\n' \"$*\" >> {log_file}")?
+  KiacCli { .. }.set_node_power(
+    context.Background(),
+    target,
+    "dev",
+    "cp",
+    domain.NodePower.Stopped,
+  )?
+  let seen = read_text(log_file)?
+  assert strings.TrimSpace(seen) == "stop node cp --name dev"
+  Ok(())
+}
