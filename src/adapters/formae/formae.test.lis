@@ -1111,3 +1111,34 @@ fn gpu_delete_ignores_bad_target() -> Result<(), error> {
   assert progress.ErrorCode != resource.OperationErrorCodeInvalidRequest
   Ok(())
 }
+
+#[test("node discovery accepts the cluster property")]
+fn node_discovery_accepts_cluster_property() -> Result<(), error> {
+  let path = fake_kiac(f"echo '{two_node_cluster_json()}'")?
+  let mut plugin = plugin_with_kiac(path)
+  let mut properties = Map.new<string, string>()
+  properties["cluster"] = "dev"
+  let request = resource.ListRequest {
+    ResourceType: TYPE_NODE,
+    TargetConfig: target_for(path),
+    AdditionalProperties: Some(properties),
+    ..,
+  }
+  let result = plugin.List(context.Background(), &request)?
+  assert result.NativeIDs.length() == 2
+  Ok(())
+}
+
+#[test("node discovery without a parent is empty")]
+fn node_discovery_without_parent_is_empty() -> Result<(), error> {
+  let path = fake_kiac(f"echo '{two_node_cluster_json()}'")?
+  let mut plugin = plugin_with_kiac(path)
+  let request = resource.ListRequest {
+    ResourceType: TYPE_NODE,
+    TargetConfig: target_for(path),
+    ..,
+  }
+  let result = plugin.List(context.Background(), &request)?
+  assert result.NativeIDs.is_empty()
+  Ok(())
+}

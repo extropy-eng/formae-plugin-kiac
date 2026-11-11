@@ -386,7 +386,10 @@ impl Plugin {
           Err(_) => return Ok(list_result([])),
         }
         let cluster = request.AdditionalProperties.map_or("", |properties| {
-          properties.get("clusterName").unwrap_or("")
+          properties
+            .get("clusterName")
+            .or_else(|| properties.get("cluster"))
+            .unwrap_or("")
         })
         match self.app.list_nodes(ctx, target, cluster) {
           Ok(ids) => Ok(list_result(ids)),
