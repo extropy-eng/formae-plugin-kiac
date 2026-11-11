@@ -1,0 +1,105 @@
+// © 2026 Extropy Engineering
+//
+// SPDX-License-Identifier: MIT
+
+import "go:encoding/json"
+
+import "application"
+import "domain"
+
+#[test("cluster request properties decode into a domain cluster spec")]
+fn cluster_request_decodes_to_spec() -> Result<(), error> {
+  let actual = decode_cluster_props(raw_message(
+    "{
+      \"name\": \"dev\",
+      \"distro\": \"k3s\",
+      \"workers\": 2,
+      \"cni\": \"cilium\"
+    }",
+  ))?
+  let expected = domain.ClusterSpec {
+    name: "dev",
+    distro: "k3s",
+    workers: 2,
+    cni: "cilium",
+    ..,
+  }
+  assert actual.equals(expected)
+  Ok(())
+}
+
+#[test("cluster read properties include observed fields")]
+fn cluster_read_properties_include_observed_fields() -> Result<(), error> {
+  let text = encode_properties(application.ResourceProperties.Cluster(
+    ready_cluster(),
+  ))
+  let mut actual: ClusterOutput = ClusterOutput { .. }
+  json.Unmarshal(text as Slice<byte>, &actual)?
+  let expected = ClusterOutput {
+    name: "dev",
+    status: "2/2 running",
+    running_nodes: 2,
+    total_nodes: 2,
+    installed_k8s_version: "v1.37.0-k3s1",
+    created: "2026-10-04T03:18:35Z",
+    nodes: [],
+  }
+  assert actual.equals(expected)
+  Ok(())
+}
+
+#[test("cluster property names decode from camel case")]
+fn cluster_property_names_decode() -> Result<(), error> {
+  let spec = decode_cluster_props(raw_message(
+    "{
+      \"name\": \"dev\",
+      \"distro\": \"kubeadm\",
+      \"gpuWorkers\": 2,
+      \"gpuImage\": \"gpu:latest\",
+      \"noLb\": true,
+      \"dns\": [\"1.1.1.1\"],
+      \"mounts\": [{\"source\": \"/a\", \"target\": \"/b\", \"readonly\": true}],
+      \"publish\": [
+        {\"hostIp\": \"127.0.0.1\", \"hostPort\": 8080, \"containerPort\": 80, \"protocol\": \"tcp\"}
+      ]
+    }",
+  ))?
+  assert spec.equals(
+    domain.ClusterSpec {
+      name: "dev",
+      distro: "kubeadm",
+      gpu_workers: 2,
+      gpu_image: "gpu:latest",
+      no_lb: true,
+      dns: ["1.1.1.1"],
+      mounts: [domain.MountSpec { source: "/a", target: "/b", readonly: true }],
+      publish: [
+        domain.PortMappingSpec {
+          host_ip: "127.0.0.1",
+          host_port: 8080,
+          container_port: 80,
+          protocol: "tcp",
+        },
+      ],
+      ..,
+    },
+  )
+  Ok(())
+}
+
+#[test("decoded cluster spec carries its fields")]
+fn decoded_cluster_spec_carries_fields() -> Result<(), error> {
+  let cluster = decode_cluster_props(raw_message(
+    "{\"name\":\"dev\",\"distro\":\"k3s\",\"cni\":\"cilium\",\"workers\":2}",
+  ))?
+  assert cluster.equals(
+    domain.ClusterSpec {
+      name: "dev",
+      distro: "k3s",
+      cni: "cilium",
+      workers: 2,
+      ..,
+    },
+  )
+  Ok(())
+}
