@@ -8,14 +8,6 @@ import "go:time"
 import "domain"
 import "ports"
 
-struct FakeHandle { state: domain.ProcessSnapshot }
-
-impl FakeHandle {
-  fn snapshot(self: FakeHandle) -> domain.ProcessSnapshot {
-    self.state
-  }
-}
-
 #[test("the registry stores a handle under its cluster")]
 fn registry_stores_handle_by_cluster() {
   let mut registry = OperationRegistry.new()
@@ -179,34 +171,6 @@ fn create_outcomes_compare_as_values() {
   assert actual.equals(CreateOutcome { ..actual })
 }
 
-fn ready_cluster() -> domain.Cluster {
-  domain.Cluster {
-    name: "dev",
-    status: "2/2 running",
-    running_nodes: 2,
-    total_nodes: 2,
-    k8s_version: "v1.37.0-k3s1",
-    created: "2026-10-04T03:18:35Z",
-    nodes: [],
-  }
-}
-
-fn target() -> domain.TargetConfig {
-  domain.TargetConfig {
-    kiac_path: "kiac",
-    container_path: "container",
-    default_wait_seconds: 300,
-    status_timeout_seconds: 10,
-  }
-}
-
-fn expect_failure<T>(result: Result<T, domain.Failure>) -> domain.Failure {
-  match result {
-    Err(failure) => failure,
-    Ok(_) => domain.fail(domain.ErrorKind.InternalFailure, "expected failure"),
-  }
-}
-
 #[test("reading a cluster returns its full observed value")]
 fn read_cluster_returns_observed_value() -> Result<(), error> {
   let mut app = app_with_clusters([ready_cluster()])
@@ -357,18 +321,6 @@ fn delete_existing_cluster_invokes_lifecycle() -> Result<(), error> {
   assert actual == DeleteOutcome { native_id: "dev", no_op: false }
   assert fake.deleted.*.equals(["dev"])
   Ok(())
-}
-
-fn busy_cluster() -> domain.Cluster {
-  domain.Cluster {
-    name: "dev",
-    status: "1/2 running",
-    running_nodes: 1,
-    total_nodes: 2,
-    k8s_version: "v1.37.0-k3s1",
-    created: "2026-10-04T03:18:35Z",
-    nodes: [],
-  }
 }
 
 #[test("a ready cluster status is a success value")]

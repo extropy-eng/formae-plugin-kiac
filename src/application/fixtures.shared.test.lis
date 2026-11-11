@@ -1,0 +1,53 @@
+// © 2026 Extropy Engineering
+//
+// SPDX-License-Identifier: MIT
+
+import "domain"
+
+struct FakeHandle { state: domain.ProcessSnapshot }
+
+impl FakeHandle {
+  fn snapshot(self: FakeHandle) -> domain.ProcessSnapshot {
+    self.state
+  }
+}
+
+fn ready_cluster() -> domain.Cluster {
+  domain.Cluster {
+    name: "dev",
+    status: "2/2 running",
+    running_nodes: 2,
+    total_nodes: 2,
+    k8s_version: "v1.37.0-k3s1",
+    created: "2026-10-04T03:18:35Z",
+    nodes: [],
+  }
+}
+
+fn busy_cluster() -> domain.Cluster {
+  domain.Cluster {
+    name: "dev",
+    status: "1/2 running",
+    running_nodes: 1,
+    total_nodes: 2,
+    k8s_version: "v1.37.0-k3s1",
+    created: "2026-10-04T03:18:35Z",
+    nodes: [],
+  }
+}
+
+fn target() -> domain.TargetConfig {
+  domain.TargetConfig {
+    kiac_path: "kiac",
+    container_path: "container",
+    default_wait_seconds: 300,
+    status_timeout_seconds: 10,
+  }
+}
+
+fn expect_failure<T>(result: Result<T, domain.Failure>) -> domain.Failure {
+  match result {
+    Err(failure) => failure,
+    Ok(_) => domain.fail(domain.ErrorKind.InternalFailure, "expected failure"),
+  }
+}
