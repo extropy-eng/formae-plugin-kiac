@@ -1,0 +1,38 @@
+// © 2026 Extropy Engineering
+//
+// SPDX-License-Identifier: MIT
+
+import "go:context"
+import "go:github.com/platform-engineering-labs/formae/pkg/plugin/resource"
+
+#[test("the SDK update path stops a node")]
+fn sdk_update_node() -> Result<(), error> {
+  let log_file = temp_file("args")?
+  let script = f"if [ \"$1\" = \"get\" ]; then
+    echo '{two_node_cluster_json()}'
+  else
+    printf '%s\\n' \"$*\" >> {log_file}
+  fi"
+  let path = fake_kiac(script)?
+  let mut plugin = plugin_with_kiac(path)
+  let request = resource.UpdateRequest {
+    NativeID: "dev/kiac-dev-worker-1",
+    ResourceType: TYPE_NODE,
+    Label: "",
+    PriorProperties: raw_message("{\"state\":\"running\"}"),
+    DesiredProperties: raw_message(
+      "{\"clusterName\":\"dev\",\"name\":\"kiac-dev-worker-1\",\"state\":\"stopped\"}",
+    ),
+    PatchDocument: None,
+    TargetConfig: target_for(path),
+  }
+  let result = plugin.Update(context.Background(), &request)?
+  let Some(progress) = result.ProgressResult else {
+    assert false
+    return Ok(())
+  }
+  assert progress.NativeID == "dev/kiac-dev-worker-1"
+  let seen = read_text(log_file)?
+  assert seen.contains("stop node kiac-dev-worker-1 --name dev")
+  Ok(())
+}
