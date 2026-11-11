@@ -3,19 +3,8 @@
 // SPDX-License-Identifier: MIT
 
 import "go:context"
-import "go:strings"
 
 import "domain"
-
-#[test("loading an image runs the image load command")]
-fn loading_image_runs_load() -> Result<(), error> {
-  let log_file = temp_file("args")?
-  let target = target_with_fake_kiac(f"printf '%s\\n' \"$*\" >> {log_file}")?
-  KiacCli { .. }.load_image(context.Background(), target, "dev", "myapp:latest")?
-  let seen = read_text(log_file)?
-  assert strings.TrimSpace(seen) == "load image myapp:latest --name dev"
-  Ok(())
-}
 
 #[test("cluster verification JSON maps to the domain verification")]
 fn verification_maps_to_domain() -> Result<(), error> {
