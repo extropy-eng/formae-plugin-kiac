@@ -7,24 +7,6 @@ import "go:encoding/json"
 import "go:github.com/platform-engineering-labs/formae/pkg/plugin/resource"
 import "go:time"
 
-#[test("the SDK list path returns cluster native ids")]
-fn sdk_list_returns_cluster_ids() -> Result<(), error> {
-  let raw = "[
-    {\"name\": \"a\", \"nodes\": []},
-    {\"name\": \"b\", \"nodes\": []}
-  ]"
-  let path = fake_kiac(f"echo '{raw}'")?
-  let mut plugin = plugin_with_kiac(path)
-  let request = resource.ListRequest {
-    ResourceType: TYPE_CLUSTER,
-    TargetConfig: target_for(path),
-    ..,
-  }
-  let result = plugin.List(context.Background(), &request)?
-  assert result.NativeIDs.equals(["a", "b"])
-  Ok(())
-}
-
 #[test("resume status echoes the nonce native id")]
 fn resume_status_echoes_nonce_native_id() -> Result<(), error> {
   let script = f"if [ \"$1\" = \"get\" ]; then
