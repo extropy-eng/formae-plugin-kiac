@@ -1,0 +1,73 @@
+// © 2026 Extropy Engineering
+//
+// SPDX-License-Identifier: MIT
+
+import "go:context"
+import "go:github.com/platform-engineering-labs/formae/pkg/plugin/resource"
+import "go:time"
+
+#[test("the SDK status path reports a ready cluster")]
+fn sdk_status_ready_cluster() -> Result<(), error> {
+  let path = fake_kiac(f"echo '{ready_cluster_json()}'")?
+  let mut plugin = plugin_with_app(app_with_kiac(path))
+  let request = resource.StatusRequest {
+    RequestID: "dev",
+    NativeID: "",
+    ResourceType: TYPE_CLUSTER,
+    TargetConfig: target_for(path),
+  }
+  let result = plugin.Status(context.Background(), &request)?
+  let Some(progress) = result.ProgressResult else {
+    assert false
+    return Ok(())
+  }
+  assert progress.OperationStatus == resource.OperationStatusSuccess
+  assert progress.NativeID == "dev"
+  Ok(())
+}
+
+#[test("the SDK status path reports a busy cluster")]
+fn sdk_status_busy_cluster() -> Result<(), error> {
+  let path = fake_kiac(f"echo '{busy_cluster_json()}'")?
+  let mut plugin = plugin_with_app(app_with_kiac(path))
+  let request = resource.StatusRequest {
+    RequestID: "dev",
+    NativeID: "",
+    ResourceType: TYPE_CLUSTER,
+    TargetConfig: target_for(path),
+  }
+  let result = plugin.Status(context.Background(), &request)?
+  let Some(progress) = result.ProgressResult else {
+    assert false
+    return Ok(())
+  }
+  assert progress.OperationStatus == resource.OperationStatusInProgress
+  assert progress.StatusMessage == "1/2 running"
+  Ok(())
+}
+
+#[test("a stalled status probe is bounded by the status timeout")]
+fn sdk_status_stalled_probe_is_bounded() -> Result<(), error> {
+  let script = "if [ \"$1\" = \"get\" ]; then sleep 5; fi"
+  let path = fake_kiac(script)?
+  let mut plugin = plugin_with_kiac(path)
+  let target = raw_message(
+    f"{{\"KiacPath\":\"{path}\",\"StatusTimeoutSeconds\":1}}",
+  )
+  let request = resource.StatusRequest {
+    RequestID: "dev",
+    NativeID: "",
+    ResourceType: TYPE_CLUSTER,
+    TargetConfig: target,
+  }
+  let started = time.Now()
+  let result = plugin.Status(context.Background(), &request)?
+  let elapsed = time.Since(started)
+  assert elapsed < time.Duration(3) * time.Second
+  let Some(progress) = result.ProgressResult else {
+    assert false
+    return Ok(())
+  }
+  assert progress.OperationStatus == resource.OperationStatusInProgress
+  Ok(())
+}
