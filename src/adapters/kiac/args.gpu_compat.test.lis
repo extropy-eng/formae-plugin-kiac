@@ -1,0 +1,34 @@
+// © 2026 Extropy Engineering
+//
+// SPDX-License-Identifier: MIT
+
+#[test("GPU compatibility enable includes certificate rotation")]
+fn gpu_compat_enable_includes_rotation() {
+  let actual = gpu_compat_args("enable", "dev", "default", true)
+  let expected = [
+    "gpu",
+    "compat",
+    "enable",
+    "--name",
+    "dev",
+    "--namespace",
+    "default",
+    "--rotate-certificate",
+  ]
+  assert actual.equals(expected)
+}
+
+#[test("GPU compatibility disable never rotates the certificate")]
+fn gpu_compat_disable_omits_rotation() {
+  let actual = gpu_compat_args("disable", "dev", "default", true)
+  let expected = [
+    "gpu",
+    "compat",
+    "disable",
+    "--name",
+    "dev",
+    "--namespace",
+    "default",
+  ]
+  assert actual.equals(expected)
+}
