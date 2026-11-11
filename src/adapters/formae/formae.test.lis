@@ -284,33 +284,6 @@ fn resume_status_echoes_nonce_native_id() -> Result<(), error> {
   Ok(())
 }
 
-fn two_node_cluster_json() -> string {
-  "{
-    \"name\": \"dev\",
-    \"status\": \"2/2 running\",
-    \"runningNodes\": 2,
-    \"totalNodes\": 2,
-    \"k8sVersion\": \"v1.37.0-k3s1\",
-    \"created\": \"2026-10-04T03:18:35Z\",
-    \"nodes\": [
-      {
-        \"name\": \"kiac-dev-control-plane\",
-        \"state\": \"running\",
-        \"ip\": \"10.0.0.1\",
-        \"image\": \"img\",
-        \"created\": \"2026-10-04T03:18:35Z\"
-      },
-      {
-        \"name\": \"kiac-dev-worker-1\",
-        \"state\": \"running\",
-        \"ip\": \"10.0.0.2\",
-        \"image\": \"img\",
-        \"created\": \"2026-10-04T03:18:35Z\"
-      }
-    ]
-  }"
-}
-
 #[test("the SDK read path returns node properties")]
 fn sdk_read_returns_node_properties() -> Result<(), error> {
   let path = fake_kiac(f"echo '{two_node_cluster_json()}'")?
