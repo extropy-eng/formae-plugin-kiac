@@ -2,7 +2,7 @@ name: CI
 
 concurrency:
   group: ${{ github.workflow }}-${{ github.ref }}-${{ github.event_name }}
-  cancel-in-progress: true
+  cancel-in-progress: false
 
 # Least privilege:
 #   CI only needs to read the repo.
