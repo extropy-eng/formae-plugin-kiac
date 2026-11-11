@@ -8,8 +8,6 @@ import "go:github.com/platform-engineering-labs/formae/pkg/model"
 import "go:github.com/platform-engineering-labs/formae/pkg/plugin/resource"
 import "go:time"
 
-import "domain"
-
 #[test("the plugin advertises namespace-scoped rate limiting")]
 fn plugin_advertises_namespace_rate_limit() {
   let plugin = plugin_with_kiac("/bin/true")
@@ -592,33 +590,6 @@ fn sdk_update_node() -> Result<(), error> {
   assert progress.NativeID == "dev/kiac-dev-worker-1"
   let seen = read_text(log_file)?
   assert seen.contains("stop node kiac-dev-worker-1 --name dev")
-  Ok(())
-}
-
-#[test("resume names decode")]
-fn resume_names_decode() -> Result<(), error> {
-  let resume = decode_resume(raw_message(
-    "{
-      \"id\": \"dev/n1\",
-      \"clusterName\": \"dev\",
-      \"nonce\": \"n1\"
-    }",
-  ))?
-  assert resume.nonce == "n1"
-  Ok(())
-}
-
-#[test("decoded resume spec carries its fields")]
-fn decoded_resume_spec_carries_fields() -> Result<(), error> {
-  let resume = decode_resume(raw_message(
-    "{
-      \"id\": \"dev/n1\",
-      \"clusterName\": \"dev\",
-      \"nonce\": \"n1\"
-    }",
-  ))?
-  assert resume ==
-  domain.ResumeSpec { id: "dev/n1", cluster_name: "dev", nonce: "n1" }
   Ok(())
 }
 

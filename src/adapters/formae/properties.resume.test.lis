@@ -1,0 +1,24 @@
+// © 2026 Extropy Engineering
+//
+// SPDX-License-Identifier: MIT
+
+import "domain"
+
+#[test("resume names decode")]
+fn resume_names_decode() -> Result<(), error> {
+  let resume = decode_resume(raw_message(
+    "{\"id\":\"dev/n1\",\"clusterName\":\"dev\",\"nonce\":\"n1\"}",
+  ))?
+  assert resume.nonce == "n1"
+  Ok(())
+}
+
+#[test("decoded resume spec carries its fields")]
+fn decoded_resume_spec_carries_fields() -> Result<(), error> {
+  let resume = decode_resume(raw_message(
+    "{\"id\":\"dev/n1\",\"clusterName\":\"dev\",\"nonce\":\"n1\"}",
+  ))?
+  assert resume ==
+  domain.ResumeSpec { id: "dev/n1", cluster_name: "dev", nonce: "n1" }
+  Ok(())
+}
