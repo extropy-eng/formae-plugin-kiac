@@ -595,14 +595,6 @@ fn sdk_update_node() -> Result<(), error> {
   Ok(())
 }
 
-#[test("verification names decode")]
-fn verification_names_decode() {
-  let verification = decode_verification(raw_message(
-    "{ \"clusterName\": \"dev\" }",
-  ))
-  assert verification.cluster_name == "dev"
-}
-
 #[test("resume names decode")]
 fn resume_names_decode() -> Result<(), error> {
   let resume = decode_resume(raw_message(

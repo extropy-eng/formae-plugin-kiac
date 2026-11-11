@@ -1,0 +1,11 @@
+// © 2026 Extropy Engineering
+//
+// SPDX-License-Identifier: MIT
+
+#[test("verification names decode")]
+fn verification_names_decode() {
+  let verification = decode_verification(raw_message(
+    "{\"clusterName\":\"dev\"}",
+  ))
+  assert verification.cluster_name == "dev"
+}
