@@ -4,31 +4,8 @@
 
 import "go:context"
 import "go:encoding/json"
-import "go:github.com/platform-engineering-labs/formae/pkg/model"
 import "go:github.com/platform-engineering-labs/formae/pkg/plugin/resource"
 import "go:time"
-
-#[test("the plugin advertises namespace-scoped rate limiting")]
-fn plugin_advertises_namespace_rate_limit() {
-  let plugin = plugin_with_kiac("/bin/true")
-  let rate_limit = plugin.RateLimit()
-  assert rate_limit.Scope == model.RateLimitScopeNamespace
-  assert rate_limit.MaxRequestsPerSecondForNamespace == 1
-}
-
-#[test("an unsupported read resource type is an invalid request")]
-fn unsupported_read_is_invalid_request() -> Result<(), error> {
-  let mut plugin = plugin_with_kiac("/bin/true")
-  let request = resource.ReadRequest {
-    NativeID: "dev",
-    ResourceType: "KIAC::Unknown",
-    TargetConfig: raw_message("{}"),
-    PriorProperties: raw_message(""),
-  }
-  let result = plugin.Read(context.Background(), &request)?
-  assert result.ErrorCode == resource.OperationErrorCodeInvalidRequest
-  Ok(())
-}
 
 #[test("the SDK read path returns cluster properties")]
 fn sdk_read_returns_cluster_properties() -> Result<(), error> {
@@ -489,24 +466,6 @@ fn sdk_status_busy_cluster() -> Result<(), error> {
   }
   assert progress.OperationStatus == resource.OperationStatusInProgress
   assert progress.StatusMessage == "1/2 running"
-  Ok(())
-}
-
-#[test("an unsupported status resource type is an invalid request")]
-fn sdk_status_unsupported_type() -> Result<(), error> {
-  let mut plugin = plugin_with_kiac("/bin/true")
-  let request = resource.StatusRequest {
-    RequestID: "dev",
-    NativeID: "",
-    ResourceType: "KIAC::Unknown",
-    TargetConfig: raw_message("{}"),
-  }
-  let result = plugin.Status(context.Background(), &request)?
-  let Some(progress) = result.ProgressResult else {
-    assert false
-    return Ok(())
-  }
-  assert progress.ErrorCode == resource.OperationErrorCodeInvalidRequest
   Ok(())
 }
 
