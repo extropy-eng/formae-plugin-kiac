@@ -30,6 +30,12 @@ postinstall = """
 """
 
 [vars]
+formae_repo = "github.com/platform-engineering-labs/formae"
+
+# plugin metadata is read from its manifest so that it never drifts
+plugin_namespace = "$(pkl eval -x namespace formae-plugin.pkl || echo 'UNDEFINED')"
+plugin_version = "$(pkl eval -x version formae-plugin.pkl || echo '0.0.0')"
+
 go_flags = "-trimpath"
 
 [tasks."validate:manifest"]
@@ -40,6 +46,27 @@ run = """
 """
 cache.enabled = true
 sources = ["formae-plugin.pkl"]
+outputs = []
+
+[tasks.schema-version]
+description = "dervies the schema version from the plugin manifest"
+run = "mkdir -p schema/pkl && echo {{ vars.plugin_version }} >| schema/pkl/VERSION"
+cache.enabled = true
+sources = ["formae-plugin.pkl"]
+outputs = ["schema/pkl/VERSION"]
+
+[tasks."validate:schema"]
+description = "validates the plugin schema against formae conventions"
+depends = "schema-version"
+run = """
+  lis check . --deny warnings 1> /dev/null 2>&1
+
+  cd target/ && cp -p ../formae-plugin.pkl .
+  go run {{ vars.formae_repo }}/pkg/plugin/testutil/cmd/verify-schema \
+    --namespace {{ vars.plugin_namespace }} ../schema/pkl
+"""
+cache.enabled = true
+sources = ["lisette.toml", "schema"]
 outputs = []
 
 [tasks.lint]
@@ -62,4 +89,5 @@ depends = [
   "lint",
   "test",
   "validate:manifest",
+  "validate:schema",
 ]
