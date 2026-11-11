@@ -1,0 +1,64 @@
+// © 2026 Extropy Engineering
+//
+// SPDX-License-Identifier: MIT
+
+import "go:encoding/json"
+
+import "application"
+import "domain"
+
+#[test("node request properties decode into a domain node spec")]
+fn node_request_decodes_to_spec() -> Result<(), error> {
+  let actual = decode_node_props(raw_message(
+    "{
+      \"id\": \"dev/cp\",
+      \"clusterName\": \"dev\",
+      \"name\": \"cp\",
+      \"state\": \"stopped\"
+    }",
+  ))?
+  assert actual ==
+  domain.NodeSpec {
+    id: "dev/cp",
+    cluster_name: "dev",
+    name: "cp",
+    state: "stopped",
+  }
+  Ok(())
+}
+
+#[test("malformed node properties are an invalid request")]
+fn malformed_node_properties_are_invalid() {
+  let failure = expect_failure(decode_node_props(raw_message("{")))
+  assert failure.kind == domain.ErrorKind.InvalidRequest
+  assert failure.message.contains("invalid properties:")
+}
+
+#[test("node read properties include the parent cluster and node state")]
+fn node_read_properties_include_parent_and_state() -> Result<(), error> {
+  let text = encode_properties(
+    application.ResourceProperties.Node {
+      cluster: "dev",
+      node: domain.Node {
+        name: "cp",
+        state: "running",
+        ip: "10.0.0.1",
+        image: "img",
+        created: "2026-10-04T03:18:35Z",
+      },
+    },
+  )
+  let mut actual: NodeOutput = NodeOutput { .. }
+  json.Unmarshal(text as Slice<byte>, &actual)?
+  assert actual ==
+  NodeOutput {
+    id: "dev/cp",
+    cluster_name: "dev",
+    name: "cp",
+    state: "running",
+    ip: "10.0.0.1",
+    image: "img",
+    created: "2026-10-04T03:18:35Z",
+  }
+  Ok(())
+}
