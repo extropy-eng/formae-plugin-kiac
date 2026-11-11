@@ -1,0 +1,98 @@
+// © 2026 Extropy Engineering
+//
+// SPDX-License-Identifier: MIT
+
+import "go:context"
+
+import "domain"
+
+struct RecordingNodePower { calls: mut Ref<mut Slice<string>> }
+
+impl RecordingNodePower {
+  fn set_node_power(
+    self: mut Ref<RecordingNodePower>,
+    _ctx: context.Context,
+    _target: domain.TargetConfig,
+    _cluster: string,
+    _node: string,
+    power: domain.NodePower,
+  ) -> Result<(), domain.Failure> {
+    let verb = match power {
+      domain.NodePower.Running => "start",
+      domain.NodePower.Stopped => "stop",
+    }
+    self.calls.* = self.calls.*.append(verb)
+    Ok(())
+  }
+}
+
+fn app_with_node_ports(
+  clusters: Slice<domain.Cluster>,
+) -> (mut Application, RecordingNodePower) {
+  let mut calls: Slice<string> = []
+  let mut node_power = RecordingNodePower { calls: &calls }
+  (
+    new(
+      FakeClusterReader { clusters, start_calls: [] },
+      FakeLifecycle { .. },
+      &node_power,
+      FakeImageLoader { .. },
+      FakeGpuCompat { .. },
+      FakeVerifier { .. },
+    ),
+    node_power,
+  )
+}
+
+#[test("updating node power runs the matching verb")]
+fn update_node_runs_matching_verb() -> Result<(), error> {
+  let (app, fake) = app_with_node_ports([two_node_cluster()])
+  let mut app = app
+  let actual = app.update_node(
+    context.Background(),
+    target(),
+    "dev/kiac-dev-worker-1",
+    domain.NodeSpec { state: "running", .. },
+    domain.NodeSpec {
+      id: "dev/kiac-dev-worker-1",
+      cluster_name: "dev",
+      name: "kiac-dev-worker-1",
+      state: "stopped",
+    },
+  )?
+  assert actual.native_id == "dev/kiac-dev-worker-1"
+  assert fake.calls.*.equals(["stop"])
+  Ok(())
+}
+
+#[test("an unknown node state is an invalid request")]
+fn update_node_unknown_state_is_invalid() {
+  let mut app = app_with_clusters([two_node_cluster()])
+  let failure = expect_failure(app.update_node(
+    context.Background(),
+    target(),
+    "dev/cp",
+    domain.NodeSpec { state: "running", .. },
+    domain.NodeSpec { cluster_name: "dev", name: "cp", state: "paused", .. },
+  ))
+  assert failure ==
+  domain.Failure {
+    kind: domain.ErrorKind.InvalidRequest,
+    message: "state must be running or stopped",
+  }
+}
+
+#[test("updating a node survives a disappearing parent")]
+fn update_node_survives_missing_parent() -> Result<(), error> {
+  let (app, _fake) = app_with_node_ports([])
+  let mut app = app
+  let actual = app.update_node(
+    context.Background(),
+    target(),
+    "dev/cp",
+    domain.NodeSpec { state: "running", .. },
+    domain.NodeSpec { cluster_name: "dev", name: "cp", state: "stopped", .. },
+  )?
+  assert actual.properties.equals(ResourceProperties.None)
+  Ok(())
+}
