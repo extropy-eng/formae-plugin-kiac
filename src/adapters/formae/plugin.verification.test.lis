@@ -1,0 +1,77 @@
+// © 2026 Extropy Engineering
+//
+// SPDX-License-Identifier: MIT
+
+import "go:context"
+import "go:encoding/json"
+import "go:github.com/platform-engineering-labs/formae/pkg/plugin/resource"
+
+#[test("the SDK create path returns the verification cluster id")]
+fn sdk_create_verification() -> Result<(), error> {
+  let mut plugin = plugin_with_kiac("/bin/true")
+  let request = resource.CreateRequest {
+    ResourceType: TYPE_VERIFICATION,
+    Label: "",
+    Properties: raw_message("{\"clusterName\":\"dev\"}"),
+    TargetConfig: raw_message("{}"),
+  }
+  let result = plugin.Create(context.Background(), &request)?
+  let Some(progress) = result.ProgressResult else {
+    assert false
+    return Ok(())
+  }
+  assert progress.OperationStatus == resource.OperationStatusSuccess
+  assert progress.NativeID == "dev"
+  Ok(())
+}
+
+#[test("the SDK read path returns the verification snapshot")]
+fn sdk_read_verification() -> Result<(), error> {
+  let payload = "{
+    \"healthy\": true,
+    \"checkedAt\": \"2026-10-04T20:01:06Z\",
+    \"duration\": \"2s\",
+    \"checks\": [
+      {
+        \"id\": \"kubernetes.api\",
+        \"name\": \"Kubernetes API\",
+        \"status\": \"pass\",
+        \"detail\": \"ok\"
+      }
+    ]
+  }"
+  let path = fake_kiac(f"echo '{payload}'")?
+  let mut plugin = plugin_with_kiac(path)
+  let request = resource.ReadRequest {
+    NativeID: "dev",
+    ResourceType: TYPE_VERIFICATION,
+    TargetConfig: target_for(path),
+    PriorProperties: raw_message(""),
+  }
+  let result = plugin.Read(context.Background(), &request)?
+  assert result.ErrorCode == resource.OperationErrorCodeNotSet
+  let mut actual: VerificationOutput = VerificationOutput { .. }
+  json.Unmarshal(result.Properties as Slice<byte>, &actual)?
+  assert actual.cluster_name == "dev"
+  assert actual.healthy
+  assert actual.checks.length() == 1
+  assert actual.checks[0].id == "kubernetes.api"
+  Ok(())
+}
+
+#[test("the SDK delete path treats verification as a no-op")]
+fn sdk_delete_verification_is_noop() -> Result<(), error> {
+  let mut plugin = plugin_with_kiac("/bin/true")
+  let request = resource.DeleteRequest {
+    NativeID: "dev",
+    ResourceType: TYPE_VERIFICATION,
+    TargetConfig: raw_message(""),
+  }
+  let result = plugin.Delete(context.Background(), &request)?
+  let Some(progress) = result.ProgressResult else {
+    assert false
+    return Ok(())
+  }
+  assert progress.Operation == resource.OperationNoOp
+  Ok(())
+}
