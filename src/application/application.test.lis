@@ -31,59 +31,6 @@ fn registry_returns_none_for_unknown_cluster() {
   assert registry.get("missing").is_none()
 }
 
-struct FakeClusterReader {
-  clusters: Slice<domain.Cluster>,
-  start_calls: Slice<string>,
-}
-
-impl FakeClusterReader {
-  fn list_clusters(
-    self: FakeClusterReader,
-    _ctx: context.Context,
-    _target: domain.TargetConfig,
-  ) -> Result<Slice<domain.Cluster>, domain.Failure> {
-    Ok(self.clusters)
-  }
-
-  fn find_cluster(
-    self: FakeClusterReader,
-    _ctx: context.Context,
-    _target: domain.TargetConfig,
-    name: string,
-  ) -> Result<Option<domain.Cluster>, domain.Failure> {
-    Ok(self.clusters.find(|cluster| cluster.name == name))
-  }
-}
-
-struct FakeLifecycle {}
-
-impl FakeLifecycle {
-  fn start_create_cluster(
-    self: FakeLifecycle,
-    _target: domain.TargetConfig,
-    _spec: domain.ClusterSpec,
-  ) -> ports.OperationHandle {
-    FakeHandle { .. }
-  }
-
-  fn start_resume_cluster(
-    self: FakeLifecycle,
-    _target: domain.TargetConfig,
-    _cluster: string,
-  ) -> ports.OperationHandle {
-    FakeHandle { .. }
-  }
-
-  fn delete_cluster(
-    self: FakeLifecycle,
-    _ctx: context.Context,
-    _target: domain.TargetConfig,
-    _name: string,
-  ) -> Result<(), domain.Failure> {
-    Ok(())
-  }
-}
-
 struct FakeNodePower {}
 
 impl FakeNodePower {
@@ -142,17 +89,6 @@ impl FakeVerifier {
   }
 }
 
-fn app_with_clusters(clusters: Slice<domain.Cluster>) -> mut Application {
-  new(
-    FakeClusterReader { clusters, start_calls: [] },
-    FakeLifecycle { .. },
-    FakeNodePower { .. },
-    FakeImageLoader { .. },
-    FakeGpuCompat { .. },
-    FakeVerifier { .. },
-  )
-}
-
 #[test("a new application starts with an empty operation registry")]
 fn new_application_has_empty_registry() {
   let mut app = app_with_clusters([])
@@ -197,17 +133,6 @@ fn list_clusters_returns_native_ids() -> Result<(), error> {
   let actual = app.list_clusters(context.Background(), target())?
   assert actual.equals(["dev"])
   Ok(())
-}
-
-fn app_with_ports(fake: FakeClusterReader) -> mut Application {
-  new(
-    fake,
-    FakeLifecycle { .. },
-    FakeNodePower { .. },
-    FakeImageLoader { .. },
-    FakeGpuCompat { .. },
-    FakeVerifier { .. },
-  )
 }
 
 #[test("creating an existing cluster is idempotent")]
