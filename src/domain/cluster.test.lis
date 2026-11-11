@@ -2,29 +2,6 @@
 //
 // SPDX-License-Identifier: MIT
 
-#[test("split_id keeps the first slash as the only boundary")]
-fn split_id_on_first_slash() {
-  assert split_id("dev/worker") == ("dev", "worker")
-}
-
-#[test("split_id treats a missing slash as an empty left side")]
-fn split_id_without_slash() {
-  assert split_id("dev") == ("", "dev")
-}
-
-#[test("first_non_empty skips blanks and trims the winner")]
-fn first_non_empty_skips_blanks() {
-  let values = [" ", "", " cluster not found "]
-  assert first_non_empty(values) == "cluster not found"
-}
-
-#[test("a failure preserves its error kind and message")]
-fn failure_preserves_kind_and_message() {
-  let actual = fail(ErrorKind.NotFound, "cluster not found: dev")
-  let expected = Failure { kind: ErrorKind.NotFound, message: "cluster not found: dev" }
-  assert actual == expected
-}
-
 #[test("cluster equality includes nested node values")]
 fn cluster_equality_includes_nodes() {
   let node = Node {

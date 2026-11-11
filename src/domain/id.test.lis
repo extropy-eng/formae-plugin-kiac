@@ -1,0 +1,13 @@
+// © 2026 Extropy Engineering
+//
+// SPDX-License-Identifier: MIT
+
+#[test("split_id keeps the first slash as the only boundary")]
+fn split_id_on_first_slash() {
+  assert split_id("dev/worker") == ("dev", "worker")
+}
+
+#[test("split_id treats a missing slash as an empty left side")]
+fn split_id_without_slash() {
+  assert split_id("dev") == ("", "dev")
+}

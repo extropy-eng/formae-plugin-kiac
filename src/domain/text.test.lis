@@ -1,0 +1,9 @@
+// © 2026 Extropy Engineering
+//
+// SPDX-License-Identifier: MIT
+
+#[test("first_non_empty skips blanks and trims the winner")]
+fn first_non_empty_skips_blanks() {
+  let values = [" ", "", " cluster not found "]
+  assert first_non_empty(values) == "cluster not found"
+}

@@ -1,0 +1,13 @@
+// © 2026 Extropy Engineering
+//
+// SPDX-License-Identifier: MIT
+
+#[test("a failure preserves its error kind and message")]
+fn failure_preserves_kind_and_message() {
+  let actual = fail(ErrorKind.NotFound, "cluster not found: dev")
+  let expected = Failure {
+    kind: ErrorKind.NotFound,
+    message: "cluster not found: dev",
+  }
+  assert actual == expected
+}
