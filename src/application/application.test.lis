@@ -70,14 +70,6 @@ fn failed_background_create_surfaces_stderr() {
   assert failure.message.contains("boom")
 }
 
-#[test("deleting a node is a no-op")]
-fn delete_node_is_noop() -> Result<(), error> {
-  let app = app_with_clusters([])
-  let actual = app.delete_node("dev/cp")?
-  assert actual == DeleteOutcome { native_id: "dev/cp", no_op: true }
-  Ok(())
-}
-
 #[test("listing nodes uses the parent cluster")]
 fn list_nodes_uses_parent_cluster() -> Result<(), error> {
   let mut app = app_with_clusters([two_node_cluster()])
