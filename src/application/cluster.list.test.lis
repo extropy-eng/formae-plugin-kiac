@@ -1,0 +1,13 @@
+// © 2026 Extropy Engineering
+//
+// SPDX-License-Identifier: MIT
+
+import "go:context"
+
+#[test("listing clusters returns their native ids")]
+fn list_clusters_returns_native_ids() -> Result<(), error> {
+  let mut app = app_with_clusters([ready_cluster()])
+  let actual = app.list_clusters(context.Background(), target())?
+  assert actual.equals(["dev"])
+  Ok(())
+}
