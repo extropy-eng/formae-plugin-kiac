@@ -31,64 +31,6 @@ fn registry_returns_none_for_unknown_cluster() {
   assert registry.get("missing").is_none()
 }
 
-struct FakeNodePower {}
-
-impl FakeNodePower {
-  fn set_node_power(
-    self: FakeNodePower,
-    _ctx: context.Context,
-    _target: domain.TargetConfig,
-    _cluster: string,
-    _node: string,
-    _power: domain.NodePower,
-  ) -> Result<(), domain.Failure> {
-    Ok(())
-  }
-}
-
-struct FakeImageLoader {}
-
-impl FakeImageLoader {
-  fn load_image(
-    self: FakeImageLoader,
-    _ctx: context.Context,
-    _target: domain.TargetConfig,
-    _cluster: string,
-    _image: string,
-  ) -> Result<(), domain.Failure> {
-    Ok(())
-  }
-}
-
-struct FakeGpuCompat {}
-
-impl FakeGpuCompat {
-  fn set_gpu_compat(
-    self: FakeGpuCompat,
-    _ctx: context.Context,
-    _target: domain.TargetConfig,
-    _cluster: string,
-    _namespace: string,
-    _enabled: bool,
-    _rotate: bool,
-  ) -> Result<(), domain.Failure> {
-    Ok(())
-  }
-}
-
-struct FakeVerifier {}
-
-impl FakeVerifier {
-  fn verify_cluster(
-    self: FakeVerifier,
-    _ctx: context.Context,
-    _target: domain.TargetConfig,
-    _cluster: string,
-  ) -> Result<domain.Verification, domain.Failure> {
-    Ok(domain.Verification { .. })
-  }
-}
-
 #[test("a new application starts with an empty operation registry")]
 fn new_application_has_empty_registry() {
   let mut app = app_with_clusters([])
