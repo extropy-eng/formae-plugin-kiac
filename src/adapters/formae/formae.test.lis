@@ -31,24 +31,6 @@ fn resume_status_echoes_nonce_native_id() -> Result<(), error> {
   Ok(())
 }
 
-#[test("the SDK list path returns node native ids")]
-fn sdk_list_returns_node_ids() -> Result<(), error> {
-  let path = fake_kiac(f"echo '{two_node_cluster_json()}'")?
-  let mut plugin = plugin_with_kiac(path)
-  let mut properties = Map.new<string, string>()
-  properties["clusterName"] = "dev"
-  let request = resource.ListRequest {
-    ResourceType: TYPE_NODE,
-    TargetConfig: target_for(path),
-    AdditionalProperties: Some(properties),
-    ..,
-  }
-  let result = plugin.List(context.Background(), &request)?
-  let expected = ["dev/kiac-dev-control-plane", "dev/kiac-dev-worker-1"]
-  assert result.NativeIDs.equals(expected)
-  Ok(())
-}
-
 #[test("the SDK create path enables GPU compatibility")]
 fn sdk_create_gpu_compat() -> Result<(), error> {
   let log_file = temp_file("args")?

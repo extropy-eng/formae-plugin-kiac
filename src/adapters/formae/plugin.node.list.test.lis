@@ -1,0 +1,24 @@
+// © 2026 Extropy Engineering
+//
+// SPDX-License-Identifier: MIT
+
+import "go:context"
+import "go:github.com/platform-engineering-labs/formae/pkg/plugin/resource"
+
+#[test("the SDK list path returns node native ids")]
+fn sdk_list_returns_node_ids() -> Result<(), error> {
+  let path = fake_kiac(f"echo '{two_node_cluster_json()}'")?
+  let mut plugin = plugin_with_kiac(path)
+  let mut properties = Map.new<string, string>()
+  properties["clusterName"] = "dev"
+  let request = resource.ListRequest {
+    ResourceType: TYPE_NODE,
+    TargetConfig: target_for(path),
+    AdditionalProperties: Some(properties),
+    ..,
+  }
+  let result = plugin.List(context.Background(), &request)?
+  let expected = ["dev/kiac-dev-control-plane", "dev/kiac-dev-worker-1"]
+  assert result.NativeIDs.equals(expected)
+  Ok(())
+}
