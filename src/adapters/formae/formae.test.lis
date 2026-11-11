@@ -1000,3 +1000,85 @@ fn resume_names_decode() -> Result<(), error> {
   assert resume.nonce == "n1"
   Ok(())
 }
+
+#[test("decoded cluster spec carries its fields")]
+fn decoded_cluster_spec_carries_fields() -> Result<(), error> {
+  let cluster = decode_cluster_props(raw_message(
+    "{
+      \"name\": \"dev\",
+      \"distro\": \"k3s\",
+      \"cni\": \"cilium\",
+      \"workers\": 2
+    }",
+  ))?
+  assert cluster.equals(
+    domain.ClusterSpec {
+      name: "dev",
+      distro: "k3s",
+      cni: "cilium",
+      workers: 2,
+      ..,
+    },
+  )
+  Ok(())
+}
+
+#[test("decoded GPU compatibility spec carries its fields")]
+fn decoded_gpu_spec_carries_fields() -> Result<(), error> {
+  let gpu = decode_gpu_compat(raw_message(
+    "{
+      \"id\": \"dev/default\",
+      \"clusterName\": \"dev\",
+      \"namespace\": \"default\",
+      \"enabled\": true,
+      \"rotateCertificate\": true
+    }",
+  ))?
+  assert gpu ==
+  domain.GpuCompatSpec {
+    id: "dev/default",
+    cluster_name: "dev",
+    namespace: "default",
+    enabled: true,
+    rotate_certificate: true,
+  }
+  Ok(())
+}
+
+#[test("decoded image spec carries its fields")]
+fn decoded_image_spec_carries_fields() -> Result<(), error> {
+  let image = decode_image(raw_message(
+    "{
+      \"id\": \"dev/app:1\",
+      \"clusterName\": \"dev\",
+      \"image\": \"app:1\"
+    }",
+  ))?
+  assert image ==
+  domain.ImageSpec { id: "dev/app:1", cluster_name: "dev", image: "app:1" }
+  Ok(())
+}
+
+#[test("decoded resume spec carries its fields")]
+fn decoded_resume_spec_carries_fields() -> Result<(), error> {
+  let resume = decode_resume(raw_message(
+    "{
+      \"id\": \"dev/n1\",
+      \"clusterName\": \"dev\",
+      \"nonce\": \"n1\"
+    }",
+  ))?
+  assert resume ==
+  domain.ResumeSpec { id: "dev/n1", cluster_name: "dev", nonce: "n1" }
+  Ok(())
+}
+
+#[test("encoded projections carry every declared field")]
+fn encoded_projections_carry_fields() {
+  let text = encode_properties(application.ResourceProperties.Image(
+    domain.Image { id: "dev/app:1", cluster_name: "dev", image: "app:1" },
+  ))
+  assert text.contains("\"id\":\"dev/app:1\"")
+  assert text.contains("\"clusterName\":\"dev\"")
+  assert text.contains("\"image\":\"app:1\"")
+}
