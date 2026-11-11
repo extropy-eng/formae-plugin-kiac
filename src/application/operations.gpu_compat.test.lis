@@ -1,0 +1,111 @@
+// © 2026 Extropy Engineering
+//
+// SPDX-License-Identifier: MIT
+
+import "go:context"
+
+import "domain"
+
+struct RecordingGpuCompat { calls: mut Ref<mut Slice<string>> }
+
+impl RecordingGpuCompat {
+  fn set_gpu_compat(
+    self: mut Ref<RecordingGpuCompat>,
+    _ctx: context.Context,
+    _target: domain.TargetConfig,
+    cluster: string,
+    namespace: string,
+    enabled: bool,
+    rotate: bool,
+  ) -> Result<(), domain.Failure> {
+    let verb = if enabled { "enable" } else { "disable" }
+    let rotation = if rotate && enabled { "rotate" } else { "no-rotate" }
+    self.calls.* = self.calls.*.append(
+      f"{verb} {cluster}/{namespace} {rotation}",
+    )
+    Ok(())
+  }
+}
+
+fn app_with_fake_gpu() -> (mut Application, RecordingGpuCompat) {
+  let mut calls: Slice<string> = []
+  let mut gpu_compat = RecordingGpuCompat { calls: &calls }
+  (
+    new(
+      FakeClusterReader { clusters: [], start_calls: [] },
+      FakeLifecycle { .. },
+      FakeNodePower { .. },
+      FakeImageLoader { .. },
+      &gpu_compat,
+      FakeVerifier { .. },
+    ),
+    gpu_compat,
+  )
+}
+
+#[test("creating GPU compatibility enables it")]
+fn create_gpu_compat_enables() -> Result<(), error> {
+  let (app, fake) = app_with_fake_gpu()
+  let mut app = app
+  let actual = app.create_gpu_compat(
+    context.Background(),
+    target(),
+    domain.GpuCompatSpec {
+      id: "dev/default",
+      cluster_name: "dev",
+      namespace: "default",
+      enabled: true,
+      rotate_certificate: true,
+    },
+  )?
+  assert actual.native_id == "dev/default"
+  assert actual.status == CreateStatus.Success
+  assert fake.calls.*.equals(["enable dev/default rotate"])
+  Ok(())
+}
+
+#[test("reading GPU compatibility returns only observable fields")]
+fn read_gpu_compat_returns_observable_fields() -> Result<(), error> {
+  let app = app_with_clusters([])
+  let actual = app.read_gpu_compat("dev/default")?
+  let ResourceProperties.GpuCompatState(state) = actual else {
+    assert false
+    return Ok(())
+  }
+  assert state ==
+  domain.GpuCompatState {
+    id: "dev/default",
+    cluster_name: "dev",
+    namespace: "default",
+  }
+  Ok(())
+}
+
+#[test("updating GPU compatibility disables it")]
+fn update_gpu_compat_disables() -> Result<(), error> {
+  let (app, fake) = app_with_fake_gpu()
+  let mut app = app
+  let actual = app.update_gpu_compat(
+    context.Background(),
+    target(),
+    "dev/default",
+    domain.GpuCompatSpec { enabled: false, .. },
+  )?
+  assert actual.native_id == "dev/default"
+  assert fake.calls.*.equals(["disable dev/default no-rotate"])
+  Ok(())
+}
+
+#[test("deleting GPU compatibility disables it")]
+fn delete_gpu_compat_disables() -> Result<(), error> {
+  let (app, fake) = app_with_fake_gpu()
+  let mut app = app
+  let actual = app.delete_gpu_compat(
+    context.Background(),
+    target(),
+    "dev/default",
+  )?
+  assert actual == DeleteOutcome { native_id: "dev/default", no_op: false }
+  assert fake.calls.*.equals(["disable dev/default no-rotate"])
+  Ok(())
+}
