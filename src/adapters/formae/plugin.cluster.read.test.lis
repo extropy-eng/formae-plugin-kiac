@@ -1,0 +1,22 @@
+// © 2026 Extropy Engineering
+//
+// SPDX-License-Identifier: MIT
+
+import "go:context"
+import "go:github.com/platform-engineering-labs/formae/pkg/plugin/resource"
+
+#[test("the SDK read path returns cluster properties")]
+fn sdk_read_returns_cluster_properties() -> Result<(), error> {
+  let path = fake_kiac(f"echo '{ready_cluster_json()}'")?
+  let mut plugin = plugin_with_kiac(path)
+  let request = resource.ReadRequest {
+    NativeID: "dev",
+    ResourceType: TYPE_CLUSTER,
+    TargetConfig: target_for(path),
+    PriorProperties: raw_message(""),
+  }
+  let result = plugin.Read(context.Background(), &request)?
+  assert result.ErrorCode == resource.OperationErrorCodeNotSet
+  assert result.Properties.contains("\"name\":\"dev\"")
+  Ok(())
+}
