@@ -3,53 +3,10 @@
 // SPDX-License-Identifier: MIT
 
 import "go:context"
-import "go:encoding/json"
 import "go:strings"
 
 import "domain"
 import "ports"
-
-#[test("kiac cluster JSON maps to the domain cluster")]
-fn kiac_cluster_maps_to_domain_cluster() -> Result<(), error> {
-  let raw = "{
-    \"name\": \"dev\",
-    \"status\": \"1/1 running\",
-    \"runningNodes\": 1,
-    \"totalNodes\": 1,
-    \"k8sVersion\": \"v1.37.0-k3s1\",
-    \"created\": \"2026-10-04T03:18:35Z\",
-    \"nodes\": [
-      {
-        \"name\": \"cp\",
-        \"state\": \"running\",
-        \"ip\": \"10.0.0.1\",
-        \"image\": \"img\",
-        \"created\": \"2026-10-04T03:18:35Z\"
-      }
-    ]
-  }"
-  let mut actual: KiacCluster = KiacCluster { .. }
-  json.Unmarshal(raw as Slice<byte>, &actual)?
-  let expected = domain.Cluster {
-    name: "dev",
-    status: "1/1 running",
-    running_nodes: 1,
-    total_nodes: 1,
-    k8s_version: "v1.37.0-k3s1",
-    created: "2026-10-04T03:18:35Z",
-    nodes: [
-      domain.Node {
-        name: "cp",
-        state: "running",
-        ip: "10.0.0.1",
-        image: "img",
-        created: "2026-10-04T03:18:35Z",
-      },
-    ],
-  }
-  assert actual.to_domain().equals(expected)
-  Ok(())
-}
 
 #[test("listing clusters maps kiac JSON to domain values")]
 fn listing_clusters_maps_to_domain_values() -> Result<(), error> {
