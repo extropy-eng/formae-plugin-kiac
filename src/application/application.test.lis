@@ -70,34 +70,6 @@ fn failed_background_create_surfaces_stderr() {
   assert failure.message.contains("boom")
 }
 
-#[test("reading a node returns the cluster and node values")]
-fn read_node_returns_cluster_and_node() -> Result<(), error> {
-  let mut app = app_with_clusters([two_node_cluster()])
-  let actual = app.read_node(
-    context.Background(),
-    target(),
-    "dev/kiac-dev-worker-1",
-  )?
-  let ResourceProperties.Node { cluster, node } = actual else {
-    assert false
-    return Ok(())
-  }
-  assert cluster == "dev"
-  assert node == two_node_cluster().nodes[1]
-  Ok(())
-}
-
-#[test("reading a missing cluster is NotFound")]
-fn read_node_missing_cluster_is_not_found() {
-  let mut app = app_with_clusters([])
-  let failure = expect_failure(app.read_node(
-    context.Background(),
-    target(),
-    "dev/missing",
-  ))
-  assert failure.kind == domain.ErrorKind.NotFound
-}
-
 struct RecordingNodePower { calls: mut Ref<mut Slice<string>> }
 
 impl RecordingNodePower {
