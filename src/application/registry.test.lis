@@ -1,0 +1,28 @@
+// © 2026 Extropy Engineering
+//
+// SPDX-License-Identifier: MIT
+
+import "ports"
+
+#[test("the registry stores a handle under its cluster")]
+fn registry_stores_handle_by_cluster() {
+  let mut registry = OperationRegistry.new()
+  let handle: ports.OperationHandle = FakeHandle { .. }
+  registry.put("dev", handle)
+  let found = registry.get("dev")
+  assert found.is_some()
+  match found {
+    Some(operation) => {
+      assert operation.cluster == "dev"
+    },
+    None => {
+      assert false
+    },
+  }
+}
+
+#[test("the registry returns none for an unknown cluster")]
+fn registry_returns_none_for_unknown_cluster() {
+  let mut registry = OperationRegistry.new()
+  assert registry.get("missing").is_none()
+}
