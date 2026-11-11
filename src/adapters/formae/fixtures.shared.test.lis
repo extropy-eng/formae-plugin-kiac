@@ -1,0 +1,46 @@
+// © 2026 Extropy Engineering
+//
+// SPDX-License-Identifier: MIT
+
+import "go:encoding/json"
+import "go:os"
+import "go:path/filepath"
+import "go:time"
+
+import "domain"
+
+fn expect_failure<T>(result: Result<T, domain.Failure>) -> domain.Failure {
+  match result {
+    Err(failure) => failure,
+    Ok(_) => domain.fail(domain.ErrorKind.InternalFailure, "expected failure"),
+  }
+}
+
+fn target_for(path: string) -> mut json.RawMessage {
+  raw_message(f"{{\"KiacPath\":\"{path}\"}}")
+}
+
+fn fake_kiac(body: string) -> Result<string, error> {
+  let dir = os.MkdirTemp("", "kiac-test")?
+  let path = filepath.Join(dir, "kiac")
+  os.WriteFile(path, (f"#!/bin/sh\n{body}") as Slice<byte>, 0o755)?
+  Ok(path)
+}
+
+fn temp_file(name: string) -> Result<string, error> {
+  let dir = os.MkdirTemp("", "kiac-test")?
+  Ok(filepath.Join(dir, name))
+}
+
+fn read_text(path: string) -> Result<string, error> {
+  Ok((os.ReadFile(path)?) as string)
+}
+
+fn wait_for_file_contains(path: string, needle: string) -> string {
+  for _i in 0..200 {
+    let text = read_text(path).unwrap_or("")
+    if text.contains(needle) { return text }
+    time.Sleep(10 * time.Millisecond)
+  }
+  ""
+}
