@@ -1,0 +1,27 @@
+// © 2026 Extropy Engineering
+//
+// SPDX-License-Identifier: MIT
+
+import "go:context"
+
+#[test("a resume status keeps the nonce native id")]
+fn resume_status_keeps_nonce_native_id() {
+  let mut app = app_with_clusters([ready_cluster()])
+  let actual = app.check_status(context.Background(), target(), "dev", "dev/n1")
+  let StatusOutcome.Success { native_id, .. } = actual else {
+    assert false
+    return
+  }
+  assert native_id == "dev/n1"
+}
+
+#[test("an empty status native id falls back to the cluster name")]
+fn empty_status_native_id_falls_back() {
+  let mut app = app_with_clusters([ready_cluster()])
+  let actual = app.check_status(context.Background(), target(), "dev", "")
+  let StatusOutcome.Success { native_id, .. } = actual else {
+    assert false
+    return
+  }
+  assert native_id == "dev"
+}
