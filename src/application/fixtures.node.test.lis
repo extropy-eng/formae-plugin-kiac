@@ -1,0 +1,32 @@
+// © 2026 Extropy Engineering
+//
+// SPDX-License-Identifier: MIT
+
+import "domain"
+
+fn two_node_cluster() -> domain.Cluster {
+  domain.Cluster {
+    name: "dev",
+    status: "2/2 running",
+    running_nodes: 2,
+    total_nodes: 2,
+    k8s_version: "v1.37.0-k3s1",
+    created: "2026-10-04T03:18:35Z",
+    nodes: [
+      domain.Node {
+        name: "kiac-dev-control-plane",
+        state: "running",
+        ip: "10.0.0.1",
+        image: "img",
+        created: "2026-10-04T03:18:35Z",
+      },
+      domain.Node {
+        name: "kiac-dev-worker-1",
+        state: "running",
+        ip: "10.0.0.2",
+        image: "img",
+        created: "2026-10-04T03:18:35Z",
+      },
+    ],
+  }
+}
