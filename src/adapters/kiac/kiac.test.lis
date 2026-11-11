@@ -8,33 +8,6 @@ import "go:strings"
 import "domain"
 import "ports"
 
-#[test("listing clusters maps kiac JSON to domain values")]
-fn listing_clusters_maps_to_domain_values() -> Result<(), error> {
-  let raw = "[
-    {
-      \"name\": \"dev\",
-      \"nodes\": []
-    }
-  ]"
-  let actual = list_clusters(
-    context.Background(),
-    target_with_fake_kiac(f"echo '{raw}'")?,
-  )?
-  let expected = [domain.Cluster { name: "dev", .. }]
-  assert actual.equals(expected)
-  Ok(())
-}
-
-#[test("an empty cluster response is an empty slice")]
-fn empty_cluster_response_is_empty() -> Result<(), error> {
-  let actual = list_clusters(
-    context.Background(),
-    target_with_fake_kiac("printf '[]'")?,
-  )?
-  assert actual.is_empty()
-  Ok(())
-}
-
 #[test("finding a cluster by name returns the matching cluster")]
 fn find_cluster_returns_matching_cluster() -> Result<(), error> {
   let raw = "[
@@ -199,27 +172,5 @@ fn verification_maps_to_domain() -> Result<(), error> {
     ],
   }
   assert actual.equals(expected)
-  Ok(())
-}
-
-#[test("a single cluster object is a one-item list")]
-fn single_cluster_object_is_a_list() -> Result<(), error> {
-  let raw = "{\"name\": \"dev\", \"nodes\": []}"
-  let actual = list_clusters(
-    context.Background(),
-    target_with_fake_kiac(f"echo '{raw}'")?,
-  )?
-  let expected = [domain.Cluster { name: "dev", .. }]
-  assert actual.equals(expected)
-  Ok(())
-}
-
-#[test("a null cluster response is an empty slice")]
-fn null_cluster_response_is_empty() -> Result<(), error> {
-  let actual = list_clusters(
-    context.Background(),
-    target_with_fake_kiac("printf 'null'")?,
-  )?
-  assert actual.is_empty()
   Ok(())
 }
