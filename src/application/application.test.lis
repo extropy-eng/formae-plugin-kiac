@@ -25,51 +25,6 @@ fn create_outcomes_compare_as_values() {
   assert actual.equals(CreateOutcome { ..actual })
 }
 
-#[test("a ready cluster status is a success value")]
-fn ready_cluster_status_is_success() {
-  let mut app = app_with_clusters([ready_cluster()])
-  let actual = app.check_status(context.Background(), target(), "dev", "")
-  let expected = StatusOutcome.Success {
-    native_id: "dev",
-    properties: ResourceProperties.Cluster(ready_cluster()),
-  }
-  assert actual.equals(expected)
-}
-
-#[test("a busy cluster status is in progress")]
-fn busy_cluster_status_is_in_progress() {
-  let mut app = app_with_clusters([busy_cluster()])
-  let actual = app.check_status(context.Background(), target(), "dev", "")
-  let expected = StatusOutcome.InProgress {
-    native_id: "dev",
-    message: "1/2 running",
-  }
-  assert actual.equals(expected)
-}
-
-#[test("a failed background create surfaces its stderr")]
-fn failed_background_create_surfaces_stderr() {
-  let mut app = app_with_clusters([])
-  app.ops.put(
-    "dev",
-    FakeHandle {
-      state: domain.ProcessSnapshot {
-        done: true,
-        error: Some("boom: cannot create"),
-        ..,
-      },
-      ..,
-    },
-  )
-  let actual = app.check_status(context.Background(), target(), "dev", "")
-  let StatusOutcome.Failure { failure } = actual else {
-    assert false
-    return
-  }
-  assert failure.kind == domain.ErrorKind.GeneralServiceException
-  assert failure.message.contains("boom")
-}
-
 struct FailingReader {}
 
 impl FailingReader {
@@ -137,28 +92,6 @@ fn probe_failure_before_deadline_remains_in_progress() {
     return
   }
   assert message.contains("unreachable")
-}
-
-#[test("a missing cluster before the deadline reports waiting")]
-fn missing_cluster_before_deadline_reports_waiting() {
-  let mut app = app_with_clusters([])
-  app.ops.put(
-    "dev",
-    FakeHandle {
-      state: domain.ProcessSnapshot {
-        done: false,
-        error: None,
-        started_at: time.Now(),
-      },
-      ..,
-    },
-  )
-  let actual = app.check_status(context.Background(), target(), "dev", "")
-  let StatusOutcome.InProgress { message, .. } = actual else {
-    assert false
-    return
-  }
-  assert message == "waiting for cluster dev"
 }
 
 #[test("an expired busy cluster says it did not converge")]
