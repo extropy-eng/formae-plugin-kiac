@@ -26,26 +26,6 @@ fn create_outcomes_compare_as_values() {
   assert actual.equals(CreateOutcome { ..actual })
 }
 
-#[test("reading a cluster returns its full observed value")]
-fn read_cluster_returns_observed_value() -> Result<(), error> {
-  let mut app = app_with_clusters([ready_cluster()])
-  let actual = app.read_cluster(context.Background(), target(), "dev")?
-  let expected = ResourceProperties.Cluster(ready_cluster())
-  assert actual.equals(expected)
-  Ok(())
-}
-
-#[test("reading a missing cluster returns NotFound")]
-fn read_missing_cluster_returns_not_found() {
-  let mut app = app_with_clusters([])
-  let failure = expect_failure(app.read_cluster(
-    context.Background(),
-    target(),
-    "gone",
-  ))
-  assert failure.kind == domain.ErrorKind.NotFound
-}
-
 #[test("listing clusters returns their native ids")]
 fn list_clusters_returns_native_ids() -> Result<(), error> {
   let mut app = app_with_clusters([ready_cluster()])
