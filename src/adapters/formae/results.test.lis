@@ -1,0 +1,52 @@
+// © 2026 Extropy Engineering
+//
+// SPDX-License-Identifier: MIT
+
+import "go:github.com/platform-engineering-labs/formae/pkg/plugin/resource"
+
+import "application"
+import "domain"
+
+#[test("every domain error kind maps to its formae code")]
+fn error_kinds_map_to_sdk_codes() {
+  assert sdk_code(domain.ErrorKind.NotFound) ==
+  resource.OperationErrorCodeNotFound
+
+  assert sdk_code(domain.ErrorKind.DependencyFailure) ==
+  resource.OperationErrorCodeDependencyFailure
+
+  assert sdk_code(domain.ErrorKind.NotUpdatable) ==
+  resource.OperationErrorCodeNotUpdatable
+}
+
+#[test("an in-progress create result carries the native id and message")]
+fn in_progress_create_carries_native_id() {
+  let result = create_result(
+    application.CreateOutcome {
+      native_id: "dev",
+      request_id: "dev",
+      status: application.CreateStatus.InProgress,
+      message: "creating cluster dev",
+      properties: application.ResourceProperties.None,
+    },
+    |_| "",
+  )
+  let Some(progress) = result.ProgressResult else {
+    assert false
+    return
+  }
+  assert progress.OperationStatus == resource.OperationStatusInProgress
+  assert progress.NativeID == "dev"
+}
+
+#[test("a no-op delete result uses the no-op operation")]
+fn noop_delete_uses_noop_operation() {
+  let result = delete_result(
+    application.DeleteOutcome { native_id: "dev/n1", no_op: true },
+  )
+  let Some(progress) = result.ProgressResult else {
+    assert false
+    return
+  }
+  assert progress.Operation == resource.OperationNoOp
+}
