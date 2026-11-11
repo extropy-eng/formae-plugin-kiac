@@ -1,0 +1,45 @@
+// © 2026 Extropy Engineering
+//
+// SPDX-License-Identifier: MIT
+
+import "application"
+import "domain"
+
+#[test("GPU compatibility read properties omit write-only fields")]
+fn gpu_compat_read_omits_write_only_fields() {
+  let text = encode_properties(application.ResourceProperties.GpuCompatState(
+    domain.GpuCompatState {
+      id: "dev/default",
+      cluster_name: "dev",
+      namespace: "default",
+    },
+  ))
+  assert text.contains("\"namespace\":\"default\"")
+  assert !text.contains("enabled")
+  assert !text.contains("rotateCertificate")
+}
+
+#[test("GPU compatibility names decode")]
+fn gpu_compat_names_decode() -> Result<(), error> {
+  let gpu = decode_gpu_compat(raw_message(
+    "{\"clusterName\":\"dev\",\"namespace\":\"default\",\"enabled\":true,\"rotateCertificate\":true}",
+  ))?
+  assert gpu.rotate_certificate
+  Ok(())
+}
+
+#[test("decoded GPU compatibility spec carries its fields")]
+fn decoded_gpu_spec_carries_fields() -> Result<(), error> {
+  let gpu = decode_gpu_compat(raw_message(
+    "{\"id\":\"dev/default\",\"clusterName\":\"dev\",\"namespace\":\"default\",\"enabled\":true,\"rotateCertificate\":true}",
+  ))?
+  assert gpu ==
+  domain.GpuCompatSpec {
+    id: "dev/default",
+    cluster_name: "dev",
+    namespace: "default",
+    enabled: true,
+    rotate_certificate: true,
+  }
+  Ok(())
+}
