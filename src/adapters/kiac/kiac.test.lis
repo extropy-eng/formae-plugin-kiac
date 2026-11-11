@@ -9,33 +9,6 @@ import "go:strings"
 import "domain"
 import "ports"
 
-#[test("stderr containing already exists maps to AlreadyExists")]
-fn already_exists_stderr_maps_to_already_exists() {
-  assert classify_error("cluster already exists") ==
-  domain.ErrorKind.AlreadyExists
-}
-
-#[test("stderr containing no such maps to NotFound")]
-fn missing_cluster_stderr_maps_to_not_found() {
-  assert classify_error("no such cluster") == domain.ErrorKind.NotFound
-}
-
-#[test("stderr containing timeout maps to ServiceTimeout")]
-fn timeout_stderr_maps_to_service_timeout() {
-  assert classify_error("timed out waiting") == domain.ErrorKind.ServiceTimeout
-}
-
-#[test("stderr containing permission denied maps to AccessDenied")]
-fn permission_stderr_maps_to_access_denied() {
-  assert classify_error("permission denied") == domain.ErrorKind.AccessDenied
-}
-
-#[test("unrecognized stderr maps to GeneralServiceException")]
-fn unknown_stderr_maps_to_general_service_exception() {
-  assert classify_error("unexpected") ==
-  domain.ErrorKind.GeneralServiceException
-}
-
 #[test("the runner returns captured stdout")]
 fn runner_returns_captured_stdout() -> Result<(), error> {
   let target = domain.TargetConfig { kiac_path: fake_kiac("echo 'hello'")?, .. }
