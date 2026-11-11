@@ -1,0 +1,28 @@
+// © 2026 Extropy Engineering
+//
+// SPDX-License-Identifier: MIT
+
+import "go:context"
+import "go:github.com/platform-engineering-labs/formae/pkg/plugin/resource"
+
+#[test("the SDK create path returns a node resource")]
+fn sdk_create_node() -> Result<(), error> {
+  let path = fake_kiac(f"echo '{two_node_cluster_json()}'")?
+  let mut plugin = plugin_with_kiac(path)
+  let request = resource.CreateRequest {
+    ResourceType: TYPE_NODE,
+    Label: "",
+    Properties: raw_message(
+      "{\"clusterName\":\"dev\",\"name\":\"kiac-dev-worker-1\"}",
+    ),
+    TargetConfig: target_for(path),
+  }
+  let result = plugin.Create(context.Background(), &request)?
+  let Some(progress) = result.ProgressResult else {
+    assert false
+    return Ok(())
+  }
+  assert progress.OperationStatus == resource.OperationStatusSuccess
+  assert progress.NativeID == "dev/kiac-dev-worker-1"
+  Ok(())
+}
