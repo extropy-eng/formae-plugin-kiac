@@ -1082,3 +1082,32 @@ fn encoded_projections_carry_fields() {
   assert text.contains("\"clusterName\":\"dev\"")
   assert text.contains("\"image\":\"app:1\"")
 }
+
+#[test("a malformed target falls back to defaults")]
+fn malformed_target_uses_defaults() {
+  let actual = parse_target_or_default(raw_message("{"))
+  assert actual ==
+  domain.TargetConfig {
+    kiac_path: "kiac",
+    container_path: "container",
+    default_wait_seconds: 300,
+    status_timeout_seconds: 10,
+  }
+}
+
+#[test("GPU delete does not reject a malformed target")]
+fn gpu_delete_ignores_bad_target() -> Result<(), error> {
+  let mut plugin = plugin_with_kiac("/bin/true")
+  let request = resource.DeleteRequest {
+    NativeID: "dev/default",
+    ResourceType: TYPE_GPU_COMPAT,
+    TargetConfig: raw_message("{"),
+  }
+  let result = plugin.Delete(context.Background(), &request)?
+  let Some(progress) = result.ProgressResult else {
+    assert false
+    return Ok(())
+  }
+  assert progress.ErrorCode != resource.OperationErrorCodeInvalidRequest
+  Ok(())
+}

@@ -298,10 +298,7 @@ impl Plugin {
         Ok(delete_result(outcome))
       },
       TYPE_GPU_COMPAT => {
-        let target = match parse_target(request.TargetConfig) {
-          Ok(target) => target,
-          Err(failure) => return Ok(delete_failure(failure)),
-        }
+        let target = parse_target_or_default(request.TargetConfig)
         match self.app.delete_gpu_compat(ctx, target, request.NativeID) {
           Ok(outcome) => Ok(delete_result(outcome)),
           Err(failure) => Ok(delete_failure(failure)),

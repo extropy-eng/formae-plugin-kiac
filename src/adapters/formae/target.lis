@@ -28,6 +28,19 @@ fn positive(value: int, fallback: int) -> int {
   if value > 0 { value } else { fallback }
 }
 
+pub fn parse_target_or_default(raw: json.RawMessage) -> domain.TargetConfig {
+  parse_target(raw).unwrap_or_else(|_| default_target())
+}
+
+fn default_target() -> domain.TargetConfig {
+  domain.TargetConfig {
+    kiac_path: "kiac",
+    container_path: "container",
+    default_wait_seconds: 300,
+    status_timeout_seconds: DEFAULT_STATUS_TIMEOUT_SECONDS,
+  }
+}
+
 pub fn parse_target(
   raw: json.RawMessage,
 ) -> Result<domain.TargetConfig, domain.Failure> {
