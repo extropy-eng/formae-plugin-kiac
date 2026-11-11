@@ -140,18 +140,6 @@ fn malformed_node_properties_are_invalid() {
   assert failure.message.contains("invalid properties:")
 }
 
-fn ready_cluster() -> domain.Cluster {
-  domain.Cluster {
-    name: "dev",
-    status: "2/2 running",
-    running_nodes: 2,
-    total_nodes: 2,
-    k8s_version: "v1.37.0-k3s1",
-    created: "2026-10-04T03:18:35Z",
-    nodes: [],
-  }
-}
-
 #[test("cluster read properties include observed fields")]
 fn cluster_read_properties_include_observed_fields() -> Result<(), error> {
   let text = encode_properties(application.ResourceProperties.Cluster(
@@ -235,30 +223,6 @@ fn unsupported_read_is_invalid_request() -> Result<(), error> {
   let result = plugin.Read(context.Background(), &request)?
   assert result.ErrorCode == resource.OperationErrorCodeInvalidRequest
   Ok(())
-}
-
-fn ready_cluster_json() -> string {
-  "{
-    \"name\": \"dev\",
-    \"status\": \"2/2 running\",
-    \"runningNodes\": 2,
-    \"totalNodes\": 2,
-    \"k8sVersion\": \"v1.37.0-k3s1\",
-    \"created\": \"2026-10-04T03:18:35Z\",
-    \"nodes\": []
-  }"
-}
-
-fn busy_cluster_json() -> string {
-  "{
-    \"name\": \"dev\",
-    \"status\": \"1/2 running\",
-    \"runningNodes\": 1,
-    \"totalNodes\": 2,
-    \"k8sVersion\": \"v1.37.0-k3s1\",
-    \"created\": \"2026-10-04T03:18:35Z\",
-    \"nodes\": []
-  }"
 }
 
 #[test("the SDK read path returns cluster properties")]

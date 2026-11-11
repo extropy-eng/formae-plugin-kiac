@@ -1,0 +1,41 @@
+// © 2026 Extropy Engineering
+//
+// SPDX-License-Identifier: MIT
+
+import "domain"
+
+fn ready_cluster() -> domain.Cluster {
+  domain.Cluster {
+    name: "dev",
+    status: "2/2 running",
+    running_nodes: 2,
+    total_nodes: 2,
+    k8s_version: "v1.37.0-k3s1",
+    created: "2026-10-04T03:18:35Z",
+    nodes: [],
+  }
+}
+
+fn ready_cluster_json() -> string {
+  "{
+    \"name\": \"dev\",
+    \"status\": \"2/2 running\",
+    \"runningNodes\": 2,
+    \"totalNodes\": 2,
+    \"k8sVersion\": \"v1.37.0-k3s1\",
+    \"created\": \"2026-10-04T03:18:35Z\",
+    \"nodes\": []
+  }"
+}
+
+fn busy_cluster_json() -> string {
+  "{
+    \"name\": \"dev\",
+    \"status\": \"1/2 running\",
+    \"runningNodes\": 1,
+    \"totalNodes\": 2,
+    \"k8sVersion\": \"v1.37.0-k3s1\",
+    \"created\": \"2026-10-04T03:18:35Z\",
+    \"nodes\": []
+  }"
+}
