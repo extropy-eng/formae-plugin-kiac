@@ -1,0 +1,37 @@
+// © 2026 Extropy Engineering
+//
+// SPDX-License-Identifier: MIT
+
+import "go:context"
+
+#[test("finding a cluster by name returns the matching cluster")]
+fn find_cluster_returns_matching_cluster() -> Result<(), error> {
+  let raw = "[
+    {
+      \"name\": \"dev\",
+      \"nodes\": []
+    }
+  ]"
+  let found = find_cluster(
+    context.Background(),
+    target_with_fake_kiac(f"echo '{raw}'")?,
+    "dev",
+  )?
+  let Some(cluster) = found else {
+    assert false
+    return Ok(())
+  }
+  assert cluster.name == "dev"
+  Ok(())
+}
+
+#[test("finding a missing cluster returns none")]
+fn find_missing_cluster_returns_none() -> Result<(), error> {
+  let found = find_cluster(
+    context.Background(),
+    target_with_fake_kiac("printf '[]'")?,
+    "missing",
+  )?
+  assert found.is_none()
+  Ok(())
+}
