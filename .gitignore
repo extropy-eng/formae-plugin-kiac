@@ -1,2 +1,4 @@
+/schema/pkl/VERSION
+
 # Lisette build workspace and generated Go
 /target/
