@@ -1,0 +1,365 @@
+module kiac
+
+import "@formae/formae.pkl"
+
+// =============================================================================
+// Shared sub-resources
+// =============================================================================
+
+/// A host directory bound into every node VM.
+@formae.SubResourceHint {}
+class Mount extends formae.SubResource {
+  @formae.FieldHint { createOnly = true }
+  mountType: String = "bind"
+
+  @formae.FieldHint { createOnly = true }
+  source: String
+
+  @formae.FieldHint { createOnly = true }
+  target: String
+
+  @formae.FieldHint { createOnly = true }
+  readonly: Boolean = false
+}
+
+/// A host port published to the control-plane VM.
+@formae.SubResourceHint {}
+class PortMapping extends formae.SubResource {
+  @formae.FieldHint { createOnly = true }
+  hostIp: String?
+
+  @formae.FieldHint { createOnly = true }
+  hostPort: Int
+
+  @formae.FieldHint { createOnly = true }
+  containerPort: Int
+
+  @formae.FieldHint { createOnly = true }
+  protocol: String = "tcp"
+}
+
+/// A node VM as reported by kiac (read-only).
+@formae.SubResourceHint {}
+class NodeVM extends formae.SubResource {
+  @formae.FieldHint {}
+  name: String
+
+  @formae.FieldHint {}
+  state: String
+
+  @formae.FieldHint {}
+  ip: String
+
+  @formae.FieldHint {}
+  image: String
+
+  @formae.FieldHint {}
+  created: String
+}
+
+/// A single verification check (read-only).
+@formae.SubResourceHint {}
+class Check extends formae.SubResource {
+  @formae.FieldHint {}
+  id: String
+
+  @formae.FieldHint {}
+  name: String
+
+  @formae.FieldHint {}
+  status: String
+
+  @formae.FieldHint {}
+  detail: String?
+}
+
+// =============================================================================
+// KIAC::Cluster::Cluster
+// =============================================================================
+
+/// A kiac Kubernetes cluster of lightweight-VM nodes.
+@formae.ResourceHint {
+  type = "KIAC::Cluster::Cluster"
+  identifier = "$.name"
+}
+class Cluster extends formae.Resource {
+  fixed hidden type: String = "KIAC::Cluster::Cluster"
+
+  /// Cluster name. Native ID.
+  @formae.FieldHint { createOnly = true }
+  name: String
+
+  // --- create inputs: kiac cannot read these back, so writeOnly ---
+
+  @formae.FieldHint { createOnly = true; writeOnly = true }
+  distro: String = "kubeadm"
+
+  @formae.FieldHint { createOnly = true; writeOnly = true }
+  workers: Int = 0
+
+  @formae.FieldHint { createOnly = true; writeOnly = true }
+  cpus: String = "4"
+
+  @formae.FieldHint { createOnly = true; writeOnly = true }
+  memory: String = "2G"
+
+  @formae.FieldHint { createOnly = true; writeOnly = true }
+  cpMemory: String = "4G"
+
+  @formae.FieldHint { createOnly = true; writeOnly = true }
+  k8sVersion: String?
+
+  @formae.FieldHint { createOnly = true; writeOnly = true }
+  image: String?
+
+  @formae.FieldHint { createOnly = true; writeOnly = true }
+  cni: String = "kindnet"
+
+  @formae.FieldHint { createOnly = true; writeOnly = true }
+  kernel: String?
+
+  @formae.FieldHint { createOnly = true; writeOnly = true }
+  ipFamily: String = "ipv4"
+
+  @formae.FieldHint { createOnly = true; writeOnly = true }
+  gateway: Boolean = false
+
+  @formae.FieldHint { createOnly = true; writeOnly = true }
+  observability: Boolean = false
+
+  @formae.FieldHint { createOnly = true; writeOnly = true }
+  gpuWorkers: Int = 0
+
+  @formae.FieldHint { createOnly = true; writeOnly = true }
+  gpuImage: String = "fedora-44"
+
+  @formae.FieldHint { createOnly = true; writeOnly = true }
+  gpuDiskSize: String = "20G"
+
+  @formae.FieldHint { createOnly = true; writeOnly = true }
+  gpuResourceDriver: String = "device-plugin"
+
+  @formae.FieldHint { createOnly = true; writeOnly = true }
+  noEdgeProxy: Boolean = false
+
+  @formae.FieldHint { createOnly = true; writeOnly = true }
+  noLb: Boolean = false
+
+  @formae.FieldHint { createOnly = true; writeOnly = true }
+  noMetrics: Boolean = false
+
+  @formae.FieldHint { createOnly = true; writeOnly = true }
+  noStorage: Boolean = false
+
+  @formae.FieldHint { createOnly = true; writeOnly = true }
+  wait: String = "5m"
+
+  @formae.FieldHint { createOnly = true; writeOnly = true }
+  dns: Listing<String>?
+
+  @formae.FieldHint { createOnly = true; writeOnly = true }
+  mounts: Listing<Mount>?
+
+  @formae.FieldHint { createOnly = true; writeOnly = true }
+  publish: Listing<PortMapping>?
+
+  // --- outputs: read back from `kiac get clusters -o json` ---
+
+  @formae.FieldHint {}
+  status: String?
+
+  @formae.FieldHint {}
+  runningNodes: Int?
+
+  @formae.FieldHint {}
+  totalNodes: Int?
+
+  @formae.FieldHint {}
+  installedK8sVersion: String?
+
+  @formae.FieldHint {}
+  created: String?
+
+  @formae.FieldHint {}
+  nodes: Listing<NodeVM>?
+}
+
+// =============================================================================
+// KIAC::Cluster::Node
+// =============================================================================
+
+/// A node VM belonging to a cluster. Nodes are created with their cluster;
+/// only power state is mutable.
+@formae.ResourceHint {
+  type = "KIAC::Cluster::Node"
+  identifier = "$.id"
+  parent = "KIAC::Cluster::Cluster"
+  parentRefs = new formae.ParentRef {
+    parentProperty = "name"
+    childProperty = "clusterName"
+  }
+}
+class Node extends formae.Resource {
+  fixed hidden type: String = "KIAC::Cluster::Node"
+
+  /// Native ID: "<cluster>/<node>".
+  @formae.FieldHint { createOnly = true }
+  id: String
+
+  @formae.FieldHint { createOnly = true }
+  clusterName: String
+
+  @formae.FieldHint { createOnly = true }
+  name: String
+
+  /// Desired power state: "running" or "stopped".
+  @formae.FieldHint {}
+  state: String?
+
+  @formae.FieldHint {}
+  ip: String?
+
+  @formae.FieldHint {}
+  image: String?
+
+  @formae.FieldHint {}
+  created: String?
+}
+
+// =============================================================================
+// KIAC::GPU::Compat
+// =============================================================================
+
+/// Opt-in NVIDIA resource-name compatibility for one namespace.
+@formae.ResourceHint {
+  type = "KIAC::GPU::Compat"
+  identifier = "$.id"
+  discoverable = false
+}
+class Compat extends formae.Resource {
+  fixed hidden type: String = "KIAC::GPU::Compat"
+
+  /// Native ID: "<cluster>/<namespace>".
+  @formae.FieldHint { createOnly = true }
+  id: String
+
+  @formae.FieldHint { createOnly = true }
+  clusterName: String
+
+  @formae.FieldHint { createOnly = true }
+  namespace: String = "default"
+
+  @formae.FieldHint { writeOnly = true }
+  enabled: Boolean = true
+
+  @formae.FieldHint { createOnly = true; writeOnly = true }
+  rotateCertificate: Boolean = false
+}
+
+// =============================================================================
+// KIAC::Cluster::Image
+// =============================================================================
+
+/// A local image loaded into every node of a cluster.
+@formae.ResourceHint {
+  type = "KIAC::Cluster::Image"
+  identifier = "$.id"
+  discoverable = false
+}
+class Image extends formae.Resource {
+  fixed hidden type: String = "KIAC::Cluster::Image"
+
+  /// Native ID: "<cluster>/<image>".
+  @formae.FieldHint { createOnly = true }
+  id: String
+
+  @formae.FieldHint { createOnly = true }
+  clusterName: String
+
+  @formae.FieldHint { createOnly = true }
+  image: String
+}
+
+// =============================================================================
+// KIAC::Cluster::Verification
+// =============================================================================
+
+/// Read-only verification snapshot for a cluster.
+@formae.ResourceHint {
+  type = "KIAC::Cluster::Verification"
+  identifier = "$.clusterName"
+  discoverable = false
+  extractable = false
+}
+class Verification extends formae.Resource {
+  fixed hidden type: String = "KIAC::Cluster::Verification"
+
+  @formae.FieldHint { createOnly = true }
+  clusterName: String
+
+  @formae.FieldHint {}
+  healthy: Boolean?
+
+  @formae.FieldHint {}
+  checkedAt: String?
+
+  @formae.FieldHint {}
+  duration: String?
+
+  @formae.FieldHint {}
+  checks: Listing<Check>?
+}
+
+// =============================================================================
+// KIAC::Cluster::Resume
+// =============================================================================
+
+/// Resume (heal) a cluster after a host reboot. Change `nonce` to re-run.
+@formae.ResourceHint {
+  type = "KIAC::Cluster::Resume"
+  identifier = "$.id"
+  discoverable = false
+}
+class Resume extends formae.Resource {
+  fixed hidden type: String = "KIAC::Cluster::Resume"
+
+  /// Native ID: "<cluster>/<nonce>".
+  @formae.FieldHint { createOnly = true }
+  id: String
+
+  @formae.FieldHint { createOnly = true }
+  clusterName: String
+
+  @formae.FieldHint { createOnly = true }
+  nonce: String
+
+  @formae.FieldHint {}
+  completed: Boolean?
+}
+
+// =============================================================================
+// Target config
+// =============================================================================
+
+/// KIAC target configuration (local runtime only).
+open class Config {
+  hidden fixed type: String = "KIAC"
+
+  @formae.ConfigFieldHint { createOnly = false }
+  hidden kiacPath: String = "kiac"
+
+  @formae.ConfigFieldHint { createOnly = false }
+  hidden containerPath: String = "container"
+
+  @formae.ConfigFieldHint { createOnly = false }
+  hidden defaultWaitSeconds: Int = 300
+
+  @formae.ConfigFieldHint { createOnly = false }
+  hidden statusTimeoutSeconds: Int = 10
+
+  fixed Type: String = type
+  fixed KiacPath: String = kiacPath
+  fixed ContainerPath: String = containerPath
+  fixed DefaultWaitSeconds: Int = defaultWaitSeconds
+  fixed StatusTimeoutSeconds: Int = statusTimeoutSeconds
+}

@@ -1,0 +1,28 @@
+/*
+ * © 2026 Extropy Engineering
+ *
+ * SPDX-License-Identifier: MIT
+ */
+
+/// Plugin configuration.
+/// Customise this with plugin-specific settings that users can set in formae.conf.pkl.
+///
+/// Users import this via: import "plugins:/Kiac.pkl" as Kiac
+///
+/// Then use it in their formae.conf.pkl:
+///   agent {
+///       resourcePlugins {
+///           new Kiac.PluginConfig {
+///               rateLimit { maxRequestsPerSecond = 5 }
+///           }
+///       }
+///   }
+open module kiac.Config
+
+extends "formae:/Config.pkl"
+
+class PluginConfig extends BaseResourcePluginConfig {
+    type = "kiac"  // Plugin name used by formae to identify this plugin.
+
+    // Add custom configuration fields here
+}
