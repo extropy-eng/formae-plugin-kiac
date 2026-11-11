@@ -8,7 +8,6 @@ import "go:github.com/platform-engineering-labs/formae/pkg/model"
 import "go:github.com/platform-engineering-labs/formae/pkg/plugin/resource"
 import "go:time"
 
-import "adapters/kiac"
 import "application"
 import "domain"
 
@@ -214,19 +213,6 @@ fn node_read_properties_include_parent_and_state() -> Result<(), error> {
     created: "2026-10-04T03:18:35Z",
   }
   Ok(())
-}
-
-fn app_with_kiac(_path: string) -> mut application.Application {
-  let cli = kiac.KiacCli { .. }
-  application.new(cli, cli, cli, cli, cli, cli)
-}
-
-fn plugin_with_app(app: mut application.Application) -> mut Plugin {
-  Plugin.new(app)
-}
-
-fn plugin_with_kiac(path: string) -> mut Plugin {
-  plugin_with_app(app_with_kiac(path))
 }
 
 #[test("the plugin advertises namespace-scoped rate limiting")]

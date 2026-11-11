@@ -1,0 +1,19 @@
+// © 2026 Extropy Engineering
+//
+// SPDX-License-Identifier: MIT
+
+import "adapters/kiac"
+import "application"
+
+fn app_with_kiac(_path: string) -> mut application.Application {
+  let cli = kiac.KiacCli { .. }
+  application.new(cli, cli, cli, cli, cli, cli)
+}
+
+fn plugin_with_app(app: mut application.Application) -> mut Plugin {
+  Plugin.new(app)
+}
+
+fn plugin_with_kiac(path: string) -> mut Plugin {
+  plugin_with_app(app_with_kiac(path))
+}
