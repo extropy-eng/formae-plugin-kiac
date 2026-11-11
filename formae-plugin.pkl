@@ -1,3 +1,9 @@
+/*
+ * © 2026 Extropy Engineering
+ *
+ * SPDX-License-Identifier: MIT
+ */
+
 // Plugin name used as the directory name and binary name.
 name = "kiac"
 
@@ -7,12 +13,9 @@ version = "0.1.0"
 // format: <NAMESPACE>::<Module>::<Resource>.
 namespace = "KIAC"
 
-summary = "Declarative management of local Kubernetes clusters on macOS"
+summary = "Declarative configuration for running Kubernetes clusters on macOS using kiac"
 
-description = """
-  This formae plugin allows the declarative configuration of local Kubernetes clusters \
-  with Pkl. These clusters are operated and managed by kiac using Apple containers on macOS.
-"""
+description = "A formae plugin for running Kubernetes clusters on macOS using Apple containers."
 
 category = "containers"
 
