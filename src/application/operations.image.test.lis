@@ -1,0 +1,81 @@
+// © 2026 Extropy Engineering
+//
+// SPDX-License-Identifier: MIT
+
+import "go:context"
+
+import "domain"
+
+struct RecordingImageLoader { calls: mut Ref<mut Slice<string>> }
+
+impl RecordingImageLoader {
+  fn load_image(
+    self: mut Ref<RecordingImageLoader>,
+    _ctx: context.Context,
+    _target: domain.TargetConfig,
+    _cluster: string,
+    image: string,
+  ) -> Result<(), domain.Failure> {
+    self.calls.* = self.calls.*.append(image)
+    Ok(())
+  }
+}
+
+fn app_with_fake_image() -> (mut Application, RecordingImageLoader) {
+  let mut calls: Slice<string> = []
+  let mut image_loader = RecordingImageLoader { calls: &calls }
+  (
+    new(
+      FakeClusterReader { clusters: [], start_calls: [] },
+      FakeLifecycle { .. },
+      FakeNodePower { .. },
+      &image_loader,
+      FakeGpuCompat { .. },
+      FakeVerifier { .. },
+    ),
+    image_loader,
+  )
+}
+
+#[test("creating an image loads it into the cluster")]
+fn create_image_loads_into_cluster() -> Result<(), error> {
+  let (app, fake) = app_with_fake_image()
+  let mut app = app
+  let actual = app.create_image(
+    context.Background(),
+    target(),
+    domain.ImageSpec {
+      id: "dev/myapp:latest",
+      cluster_name: "dev",
+      image: "myapp:latest",
+    },
+  )?
+  assert actual.native_id == "dev/myapp:latest"
+  assert fake.calls.*.equals(["myapp:latest"])
+  Ok(())
+}
+
+#[test("reading an image echoes the declared value")]
+fn read_image_echoes_declared_value() -> Result<(), error> {
+  let app = app_with_clusters([])
+  let actual = app.read_image("dev/myapp:latest")?
+  let ResourceProperties.Image(image) = actual else {
+    assert false
+    return Ok(())
+  }
+  assert image ==
+  domain.Image {
+    id: "dev/myapp:latest",
+    cluster_name: "dev",
+    image: "myapp:latest",
+  }
+  Ok(())
+}
+
+#[test("deleting an image is a no-op")]
+fn delete_image_is_noop() -> Result<(), error> {
+  let app = app_with_clusters([])
+  let actual = app.delete_image("dev/myapp:latest")?
+  assert actual == DeleteOutcome { native_id: "dev/myapp:latest", no_op: true }
+  Ok(())
+}
