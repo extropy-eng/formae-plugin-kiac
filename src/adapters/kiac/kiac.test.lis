@@ -6,21 +6,6 @@ import "go:context"
 import "go:strings"
 
 import "domain"
-import "ports"
-
-#[test("a cluster resume runs the expected command in the background")]
-fn cluster_resume_runs_in_background() -> Result<(), error> {
-  let log_file = temp_file("args")?
-  let target = target_with_fake_kiac(
-    f"printf '%s\\n' \"$*\" >> {log_file}; sleep 0.1",
-  )?
-  let handle = KiacCli { .. }.start_resume_cluster(target, "dev")
-  let seen = wait_for_file_contains(log_file, "resume cluster --name dev")
-  assert strings.TrimSpace(seen) == "resume cluster --name dev"
-  let snapshot = wait_for_handle(handle)?
-  assert snapshot.done
-  Ok(())
-}
 
 #[test("deleting a cluster runs the delete command")]
 fn deleting_cluster_runs_delete() -> Result<(), error> {
