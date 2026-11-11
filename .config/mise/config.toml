@@ -33,6 +33,7 @@ postinstall = """
 formae_repo = "github.com/platform-engineering-labs/formae"
 
 # plugin metadata is read from its manifest so that it never drifts
+plugin_name = "$(pkl eval -x name formae-plugin.pkl || echo 'undefined')"
 plugin_namespace = "$(pkl eval -x namespace formae-plugin.pkl || echo 'UNDEFINED')"
 plugin_version = "$(pkl eval -x version formae-plugin.pkl || echo '0.0.0')"
 
@@ -81,6 +82,16 @@ description = "transpiles, builds and runs all tests"
 run = "lis test --go-flags {{ vars.go_flags }}"
 cache.enabled = true
 sources = ["lisette.toml", "src/**/*.lis"]
+outputs = ["target"]
+
+[tasks.build]
+description = "build the plugin binary"
+depends = "schema-version"
+run = """
+	lis build --go-flags "{{ vars.go_flags }} -o bin/{{ vars.plugin_name }}" --sourcemap
+"""
+cache.enabled = true
+sources = ["lisette.toml", "src/**/*.lis", "!src/**/*.test.lis"]
 outputs = ["target"]
 
 [tasks.check]
