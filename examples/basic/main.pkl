@@ -1,0 +1,24 @@
+amends "@formae/forma.pkl"
+
+import "@formae/formae.pkl"
+import "@kiac/core/kiac.pkl"
+
+forma {
+  new formae.Stack {
+    label = "kiac-demo"
+    description = "A local kiac cluster"
+  }
+
+  new formae.Target {
+    label = "local"
+    namespace = "KIAC"
+    config = new kiac.Config {}
+  }
+
+  new kiac.Cluster {
+    label = "dev-cluster"
+    name = "dev"
+    distro = "k3s"
+    workers = 2
+  }
+}

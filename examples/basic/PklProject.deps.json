@@ -1,0 +1,17 @@
+{
+  "schemaVersion": 1,
+  "resolvedDependencies": {
+    "package://hub.platform.engineering/plugins/pkl/schema/pkl/formae/formae@0": {
+      "type": "remote",
+      "uri": "projectpackage://hub.platform.engineering/plugins/pkl/schema/pkl/formae/formae@0.90.5",
+      "checksums": {
+        "sha256": "a697db1b16f2baa2ea1eb409121d8e4581fbde1f575ce39f67abb083e7dd44a2"
+      }
+    },
+    "package://localhost/plugins/kiac/schema/pkl/kiac@0": {
+      "type": "local",
+      "uri": "projectpackage://localhost/plugins/kiac/schema/pkl/kiac@0.1.0",
+      "path": "../../schema/pkl"
+    }
+  }
+}
