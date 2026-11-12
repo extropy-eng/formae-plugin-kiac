@@ -98,6 +98,27 @@ outputs = ["target"]
 description = "removes build artifacts"
 run = "rm -rf bin/ schema/pkl/VERSION target/"
 
+# The agent and working plugins use the PEL forks; upstream never schedules
+# the SDK status-check timer, which reintroduces the missing-in-action bug
+# in the formae agent.
+[tasks."check:deps"]
+description = "checks this plugin uses PEL forks of actor/statemachine and ergo"
+run = """
+  mise run build 1> /dev/null 2>&1
+  deps="$(go version -m target/bin/{{ vars.plugin_name }})"
+
+  echo $deps | grep -q "JeroenSoeters/actor/statemachine" \
+    ||{ echo "✘ This plugin does not use the PEL fork of ergo.services/actor/statemachine." 1>&2; exit 1; }
+
+  echo $deps | grep -q "JeroenSoeters/ergo" \
+    || { echo "✘ This plugin does not use the PEL fork of ergo.services/ergo." 1>&2; exit 1; }
+
+  echo "✓ This plugin uses PEL forks of actor/statemachine and ergo."
+"""
+cache.enabled = true
+sources = ["lisette.toml", "target/bin/{{ vars.plugin_name }}"]
+outputs = []
+
 [tasks.check]
 description = "runs all static checks and tests"
 depends = [
@@ -105,4 +126,5 @@ depends = [
   "test",
   "validate:manifest",
   "validate:schema",
+  "check:deps",
 ]
