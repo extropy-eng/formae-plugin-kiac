@@ -94,6 +94,10 @@ cache.enabled = true
 sources = ["lisette.toml", "src/**/*.lis", "!src/**/*.test.lis"]
 outputs = ["target"]
 
+[tasks.clean]
+description = "removes build artifacts"
+run = "rm -rf bin/ schema/pkl/VERSION target/"
+
 [tasks.check]
 description = "runs all static checks and tests"
 depends = [
