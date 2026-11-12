@@ -37,7 +37,7 @@ schema version do not drift.
 | `src/ports/` | Structural interfaces for outbound capabilities. |
 | `src/application/` | Resource use cases, outcome types, status polling, and the operation registry. |
 | `src/adapters/formae/` | SDK boundary, target/property codecs, result mapping, and resource dispatch. |
-| `src/adapters/kiac/` | CLI argv, JSON DTOs, process runner, async handles, and stderr classification. |
+| `src/adapters/kiac/` | CLI arguments, JSON DTOs, process runner, async handles, and stderr classification. |
 | `schema/pkl/` | Pkl schema for the six resource types and the target config. |
 | `examples/basic/` | A complete project you can evaluate or apply. |
 | `docs/` | Technical design and this document.
@@ -119,8 +119,8 @@ FORMAE_TEST_RUN_ID=local-1 mise --env=conformance run test:conformance
 ```
 
 The conformance environment also exposes `test:conformance:crud` and
-`test:conformance:discovery` for narrower runs. The suite creates real containers and
-cleans them up, so run it on a Mac with `container` running.
+`test:conformance:discovery` for narrower runs. The suite creates real containers
+and cleans them up, so the `apple/container` system must be run beforehand.
 
 CI runs `mise run check` on Linux, and runs conformance tests on macOS
 when triggered.
