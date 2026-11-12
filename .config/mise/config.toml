@@ -43,7 +43,7 @@ go_flags = "-trimpath"
 description = "validates the plugin manifest"
 run = """
   pkl eval formae-plugin.pkl --format json 1> /dev/null
-  echo "Plugin manifest validated successfully"
+  echo "✓ Plugin manifest validated successfully"
 """
 cache.enabled = true
 sources = ["formae-plugin.pkl"]
@@ -108,7 +108,7 @@ run = """
   deps="$(go version -m target/bin/{{ vars.plugin_name }})"
 
   echo $deps | grep -q "JeroenSoeters/actor/statemachine" \
-    ||{ echo "✘ This plugin does not use the PEL fork of ergo.services/actor/statemachine." 1>&2; exit 1; }
+    || { echo "✘ This plugin does not use the PEL fork of ergo.services/actor/statemachine." 1>&2; exit 1; }
 
   echo $deps | grep -q "JeroenSoeters/ergo" \
     || { echo "✘ This plugin does not use the PEL fork of ergo.services/ergo." 1>&2; exit 1; }
