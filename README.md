@@ -1,5 +1,5 @@
 
-# Local Kubernetes on macOS with `kiac`, declared in Pkl
+<h1 align="center">Local Kubernetes on macOS with <code>kiac</code>, declared in Pkl</h1>
 
 <p align="center">
   <a href="https://github.com/extropy-eng/formae-plugin-kiac/actions/workflows/ci.yaml">
