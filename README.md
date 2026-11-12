@@ -382,21 +382,12 @@ The plugin implements the formae plugin SDK. It does not reimplement kiac.
 Every resource operation becomes a `kiac` command, and the plugin reads kiac's JSON
 output to report resource properties and status.
 
-The resource logic is written in [Lisette](https://lisette.run), a language that
-transpiles to Go. The formae SDK and the `os/exec` boundary stay as Go interop.
-See [docs/DESIGN.md](docs/DESIGN.md) for the architecture and the language trade-offs.
-
 ## Troubleshooting
 
 Run `kiac doctor` first. It checks the container runtime and the kiac installation,
 and `kiac doctor --fix` can start the container service.
 
 If the agent does not see the plugin, check `formae plugin list` and restart `formae agent`.
-
-If a cluster create reports `Plugin operator is missing in action`, read
-[the incident record](docs/bugs/2026-11-03-plugin-operator-missing-in-action.md).
-It explains the status watchdog, the fix, and the remaining risk on non-status lookup
-paths.
 
 ## Learn more
 
