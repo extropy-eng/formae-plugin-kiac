@@ -44,7 +44,7 @@ drive kiac.
 
 The combination gives you:
 
-- Repeatable clusters. The cluster definition lives in Git, not in a shell history.
+- Repeatable clusters. The cluster definition is under version control.
 - Real node isolation for testing scheduling, eviction, and node failure.
 - One lifecycle. Create, inspect, stop, resume, and destroy clusters with `formae`.
 - A local workflow that matches production. The same Pkl, plan, and apply model works

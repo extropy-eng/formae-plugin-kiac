@@ -211,8 +211,8 @@ pub fn node_power_for(state: string) -> Option<NodePower> {
 }
 ```
 
-The CLI verb (`start` or `stop`) stays in the kiac adapter because it is a CLI
-detail, not a domain concept.
+The CLI verb (`start` or `stop`) stays in the kiac adapter as it is a CLI detail
+rather than a domain concept.
 
 ### Failure vocabulary
 
@@ -920,7 +920,7 @@ package.
 - Lisette is a smaller ecosystem than Go. Fewer examples and fewer third-party
   libraries are available, though Go interop covers the SDK and standard
   library.
-- The Go `1.26` pin is a toolchain constraint, not a product requirement.
+- The Go `1.26` pin is a toolchain constraint.
 - Only status uses the bounded probe. Other cluster and node lookups add no
   plugin-level deadline and rely on the agent's request context.
 - `containerPath` is not used yet.
@@ -930,8 +930,8 @@ package.
 
 ## Future work
 
-Apply the bounded probe to every cluster lookup, not only status. That removes
-the remaining watchdog risk on create, read, delete, list, and node paths.
+Apply the bounded probe to every cluster lookup. That removes the remaining
+watchdog risk on create, read, delete, list, and node paths.
 
 Other candidates:
 
