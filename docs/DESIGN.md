@@ -216,6 +216,10 @@ detail, not a domain concept.
 
 ### Failure vocabulary
 
+<details>
+
+<summary><code>ErrorKind</code></summary>
+
 ```rust
 pub enum ErrorKind {
   InvalidRequest,
@@ -228,7 +232,23 @@ pub enum ErrorKind {
   NotUpdatable,
   InternalFailure,
 }
+```
 
+</details>
+
+<p/>
+
+`ErrorKind` is mapped to `resource.OperationErrorCode` in exactly one place:
+`adapters/formae/results.lis`. The kiac adapter classifies `stderr` into
+`ErrorKind`; it does not import the formae SDK.
+
+<p/>
+
+<details>
+
+<summary><code>Failure</code></summary>
+
+```rust
 pub struct Failure {
   pub kind: ErrorKind,
   pub message: string,
@@ -241,15 +261,17 @@ impl Failure {
 }
 ```
 
-`ErrorKind` is mapped to `resource.OperationErrorCode` in exactly one place:
-`adapters/formae/results.lis`. The kiac adapter classifies `stderr` into
-`ErrorKind`; it does not import the formae SDK.
+</details>
 
 ## Ports
 
 The outbound ports are segregated by capability. Each application use case
 depends only on the methods it calls. `KiacCli` structurally implements all of
 them, so no composite `Kiac` interface is required.
+
+<details>
+
+<summary><code>ClusterReader</code></summary>
 
 ```rust
 pub interface ClusterReader {
@@ -258,7 +280,15 @@ pub interface ClusterReader {
   fn find_cluster(ctx: context.Context, target: domain.TargetConfig, name: string)
     -> Result<Option<domain.Cluster>, domain.Failure>
 }
+```
 
+</details>
+
+<details>
+
+<summary><code>ClusterLifecycle</code></summary>
+
+```rust
 pub interface ClusterLifecycle {
   fn start_create_cluster(target: domain.TargetConfig, spec: domain.ClusterSpec)
     -> OperationHandle
@@ -267,7 +297,15 @@ pub interface ClusterLifecycle {
   fn delete_cluster(ctx: context.Context, target: domain.TargetConfig, name: string)
     -> Result<(), domain.Failure>
 }
+```
 
+</details>
+
+<details>
+
+<summary><code>NodePowerController</code></summary>
+
+```rust
 pub interface NodePowerController {
   fn set_node_power(
     ctx: context.Context,
@@ -277,7 +315,15 @@ pub interface NodePowerController {
     power: domain.NodePower,
   ) -> Result<(), domain.Failure>
 }
+```
 
+</details>
+
+<details>
+
+<summary><code>ImageLoader</code></summary>
+
+```rust
 pub interface ImageLoader {
   fn load_image(
     ctx: context.Context,
@@ -286,7 +332,15 @@ pub interface ImageLoader {
     image: string,
   ) -> Result<(), domain.Failure>
 }
+```
 
+</details>
+
+<details>
+
+<summary><code>GpuCompatController</code></summary>
+
+```rust
 pub interface GpuCompatController {
   fn set_gpu_compat(
     ctx: context.Context,
@@ -297,16 +351,36 @@ pub interface GpuCompatController {
     rotate: bool,
   ) -> Result<(), domain.Failure>
 }
+```
 
+</details>
+
+<details>
+
+<summary><code>ClusterVerifier</code></summary>
+
+```rust
 pub interface ClusterVerifier {
   fn verify_cluster(ctx: context.Context, target: domain.TargetConfig, cluster: string)
     -> Result<domain.Verification, domain.Failure>
 }
+```
 
+</details>
+
+<details>
+
+<summary><code>OperationHandle</code></summary>
+
+```rust
 pub interface OperationHandle {
   fn snapshot() -> domain.ProcessSnapshot
 }
 ```
+
+</details>
+
+<p/>
 
 Two boundaries are intentionally not ports:
 
@@ -321,7 +395,11 @@ Two boundaries are intentionally not ports:
 
 ## Application
 
-`Application` holds the small outbound ports plus one `OperationRegistry`:
+
+
+<details>
+
+<summary><code>Application</code> holds the small outbound ports plus one <code>OperationRegistry</code>.</summary>
 
 ```rust
 pub struct Application {
@@ -335,6 +413,10 @@ pub struct Application {
 }
 ```
 
+</details>
+
+<p/>
+
 Use cases are methods on `Application`, grouped by resource:
 
 - cluster: create, read, delete, list.
@@ -342,7 +424,11 @@ Use cases are methods on `Application`, grouped by resource:
 - operations: GPU compatibility, image, verification, resume.
 - status: cluster and resume status polling.
 
-The application returns domain outcomes, not SDK result structs:
+The application returns domain outcomes:
+
+<details>
+
+<summary><code>ResourceProperties</code></summary>
 
 ```rust
 pub enum ResourceProperties {
@@ -355,7 +441,15 @@ pub enum ResourceProperties {
   Verification(domain.Verification),
   Resume(domain.Resume),
 }
+```
 
+</details>
+
+<details>
+
+<summary><code>CreateOutcome</code></summary>
+
+```rust
 pub struct CreateOutcome {
   pub native_id: string,
   pub request_id: string,
@@ -364,6 +458,10 @@ pub struct CreateOutcome {
   pub properties: ResourceProperties,
 }
 ```
+
+</details>
+
+<p/>
 
 `CreateStatus` is `Success` or `InProgress`. `UpdateOutcome` and `DeleteOutcome`
 carry the same kind of domain data. `StatusOutcome` is an enum with
