@@ -757,8 +757,8 @@ generated Go still handles the runtime and the SDK calls.
 
 ### Why not GALA
 
-GALA is a compact language that transpiles to Go and can call the same SDK. It
-is a reasonable choice for small programs. The plugin's hard parts are async
+[GALA](https://gala.fyi/) is a compact language that transpiles to Go and can call the same SDK.
+It is a reasonable choice for small programs. The plugin's hard parts are async
 state, failure classification, and resource dispatch; Lisette's explicit types
 make those visible, while GALA relies more on terseness and convention.
 
@@ -772,6 +772,8 @@ developer experience compared to GALA:
   that can be integrated with TUI file managers like Yazi for browsing Lisette
   code
 - it produces [richer test reports](https://lisette.run/docs/tests/)
+
+See also this [GALA vs Lisette](https://gala.fyi/vs-lisette/) comparison.
 
 ### Why Go at the SDK boundary
 
@@ -789,7 +791,7 @@ the adapters are the place to update.
 
 ## Build and toolchain
 
-mise owns the development toolchain and task graph.
+[mise](https://mise.jdx.dev) owns the development toolchain and task graph.
 
 - Go is pinned to `1.26`. Lisette `0.13.0`'s `bindgen` knows the Go `1.26`
   standard library. Go `1.27` aliases `encoding/json.RawMessage` to
@@ -820,7 +822,7 @@ package.
 - Lisette is a smaller ecosystem than Go. Fewer examples and fewer third-party
   libraries are available, though Go interop covers the SDK and standard
   library.
-- The Go 1.26 pin is a toolchain constraint, not a product requirement.
+- The Go `1.26` pin is a toolchain constraint, not a product requirement.
 - Only status uses the bounded probe. Other cluster and node lookups add no
   plugin-level deadline and rely on the agent's request context.
 - `containerPath` is not used yet.
