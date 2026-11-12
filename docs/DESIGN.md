@@ -838,4 +838,4 @@ Other candidates:
 - Add a fake runtime path for conformance tests so more of the lifecycle can
   run on Linux.
 - Document generated Go inspection and debugging notes in
-  [CONTRIBUTING](CONTRIBUTING.md).
+  [DEVELOPMENT](DEVELOPMENT.md).
