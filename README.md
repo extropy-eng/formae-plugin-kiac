@@ -408,5 +408,5 @@ See [DEVELOPMENT](docs/DEVELOPMENT.md).
 
 Built and tested on macOS 27.2 by [Extropy Engineering](https://github.com/extropy-eng).
 
-Assisted by *DeepSeek v4.1 Flash* using [OpenCode v2](https://github.com/anomalyco/opencode)
+Assisted by *DeepSeek v4.1 Flash* using [OpenCode v2](https://opencode.ai/terminal)
 with [Superpowers](https://github.com/obra/superpowers).
