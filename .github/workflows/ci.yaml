@@ -49,6 +49,6 @@ jobs:
           cache: true
           cache_restore_retry_budget: 30s
           cache_save_retry_budget: 90s
-          version: 2026.11.6
+          version: 2026.11.7
 
       - run: mise run check
