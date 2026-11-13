@@ -326,6 +326,8 @@ new formae.Target {
 
 ## How it works
 
+<div align="center">
+
 ```mermaid
 %%{
   init: {
@@ -340,34 +342,39 @@ new formae.Target {
       "clusterBkg": "#f8fafc",
       "clusterBorder": "#94a3b8"
     },
-    "themeCSS": ".edgePath path{stroke:#818cf8!important}marker path{fill:#818cf8!important}"
+    "themeCSS": "svg{display:block!important;margin-left:auto!important;margin-right:auto!important}.labelBkg,.edgeLabel,.edgeLabel p{background-color:transparent!important}.edgeLabel,.edgeLabel p,.edgeLabel span{color:#818cf8!important}.edgePath path{stroke:#818cf8!important}marker path{fill:#818cf8!important}"
   }
 }%%
-flowchart LR
-    P["main.pkl<br/>desired state in Pkl"]
+flowchart TB
+    P["main.pkl<br/>desired state"]
 
     subgraph FORMAE["formae"]
-        A["CLI + agent"]
+        direction LR
+        A1["CLI"]
+        A2["agent"]
+        A1 --> A2
     end
 
-    subgraph PLUGIN["kiac plugin process"]
-        direction TB
+    subgraph PLUGIN["kiac plugin"]
+        direction LR
         S["Go SDK boundary"]
-        L["Resource logic"]
-        E["os/exec"]
+        L["resource logic"]
+        E["os/exec<br/>to kiac CLI"]
         S --> L --> E
     end
 
     subgraph MAC["macOS runtime"]
+        direction LR
         K["kiac CLI"]
         C["apple/container"]
-        V["node VMs"]
+        V["node microVMs"]
         K --> C --> V
     end
 
-    P --> A --> S
-    E --> K
-    L -. "resource lifecycle<br/>status polling" .-> A
+    P --> FORMAE
+    PLUGIN -. "resource lifecycle<br/>status polling" .-> FORMAE
+    FORMAE --> PLUGIN
+    PLUGIN --> MAC
 
     classDef source fill:#f8fafc,stroke:#334155,stroke-width:2px,color:#0f172a
     classDef inbound fill:#eef2ff,stroke:#4f46e5,stroke-width:2px,color:#1e1b4b
@@ -375,11 +382,13 @@ flowchart LR
     classDef outbound fill:#ecfeff,stroke:#0891b2,stroke-width:2px,color:#164e63
     classDef runtime fill:#fff7ed,stroke:#ea580c,stroke-width:2px,color:#7c2d12
     class P source
-    class A,S inbound
+    class A1,A2,S inbound
     class L core
     class E,K,C outbound
     class V runtime
 ```
+
+</div>
 
 The plugin implements the formae plugin SDK. It does not reimplement kiac.
 Every resource operation becomes a `kiac` command, and the plugin reads kiac's JSON

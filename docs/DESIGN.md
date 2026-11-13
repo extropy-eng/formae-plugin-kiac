@@ -71,7 +71,7 @@ together.
       "clusterBkg": "#f8fafc",
       "clusterBorder": "#94a3b8"
     },
-    "themeCSS": ".edgePath path{stroke:#818cf8!important}marker path{fill:#818cf8!important}"
+    "themeCSS": ".labelBkg,.edgeLabel,.edgeLabel p{background-color:transparent!important}.edgeLabel,.edgeLabel p,.edgeLabel span{color:#818cf8!important}.edgePath path{stroke:#818cf8!important}marker path{fill:#818cf8!important}"
   }
 }%%
 flowchart TB
