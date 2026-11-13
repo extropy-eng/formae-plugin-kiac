@@ -37,6 +37,10 @@ plugin_name = "$(pkl eval -x name formae-plugin.pkl || echo 'undefined')"
 plugin_namespace = "$(pkl eval -x namespace formae-plugin.pkl || echo 'UNDEFINED')"
 plugin_version = "$(pkl eval -x version formae-plugin.pkl || echo '0.0.0')"
 
+# plugin discovery requires lowercase directory names matching the plugin name
+plugin_base_dir = "${XDG_DATA_HOME:=$HOME/.pel}/formae/plugins"
+install_dir = "{{ vars.plugin_base_dir }}/{{ vars.plugin_name }}/v{{ vars.plugin_version }}"
+
 go_flags = "-trimpath"
 
 [tasks."validate:manifest"]
@@ -128,3 +132,31 @@ depends = [
   "validate:schema",
   "check:deps",
 ]
+
+[tasks.install]
+description = "builds and installs the plugin locally"
+depends = "check"
+run = """
+  echo "Installing plugin {{ vars.plugin_name }} v{{ vars.plugin_version }}..."
+
+  # remove any existing versions of the plugin first to ensure clean state
+  rm -rf {{ vars.plugin_base_dir }}/{{ vars.plugin_name }}
+
+  mkdir -p {{ vars.install_dir }}/schema
+  cp -p target/bin/{{ vars.plugin_name }} {{ vars.install_dir }}/{{ vars.plugin_name }}
+  cp -pr schema/* {{ vars.install_dir }}/schema/
+  cp -p formae-plugin.pkl {{ vars.install_dir }}/
+
+  echo "✓ Plugin installed at {{ vars.install_dir }}"
+  echo "  ✓ Binary: {{ vars.install_dir }}/{{ vars.plugin_name }}"
+  echo "  ✓ Schema: {{ vars.install_dir }}/schema/"
+  echo "  ✓ Manifest: {{ vars.install_dir }}/formae-plugin.pkl"
+"""
+cache.enabled = true
+sources = [
+  "formae-plugin.pkl",
+  "lisette.toml",
+  "schema",
+  "target/bin/{{ vars.plugin_name }}",
+]
+outputs = []
