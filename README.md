@@ -274,8 +274,9 @@ formae plugin uninstall kiac
 
 ### Add the schema to an existing project
 
-`formae project init --include kiac` handles this for a new project. For an existing
-project, add the kiac schema to `PklProject` and resolve dependencies:
+`formae project init --include kiac` handles this for a new project.
+
+For an existing project, add the kiac schema to `PklProject` and resolve dependencies:
 
 ```pkl
 dependencies {
