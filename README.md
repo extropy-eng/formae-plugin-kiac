@@ -120,7 +120,7 @@ Then start it up:
 container system start
 ```
 
-### 3. Install kiac`
+### 3. Install `kiac`
 
 Install `kiac` then check the host with `kiac doctor`:
 
@@ -150,7 +150,7 @@ The plugin store is root-owned on a stock install, so the command may ask for `s
 See the [Consume the plugin through the Formae Hub](#consume-the-plugin-through-the-formae-hub) section
 below for instructions on how to search, update, and pin a version of this plugin.
 
-### 5. Start the `formae` agent
+### 5. Start the formae agent
 
 Run the agent in its own terminal and leave it running:
 
@@ -353,7 +353,7 @@ flowchart LR
     subgraph PLUGIN["kiac plugin process"]
         direction TB
         S["Go SDK boundary"]
-        L["Lisette resource logic"]
+        L["Resource logic"]
         E["os/exec"]
         S --> L --> E
     end

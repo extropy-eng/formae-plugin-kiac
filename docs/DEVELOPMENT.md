@@ -47,7 +47,7 @@ schema version do not drift.
 ```bash
 mise run check              # lint, tests, manifest, schema, and dependency guard
 mise run build              # build the plugin binary and record schema/pkl/VERSION
-mise run test               # transpile, build, and run the unit suite
+mise run test               # transpile, build, and run the test suite
 mise run lint               # typecheck and lint for darwin/arm64 and linux/amd64
 mise run validate:manifest  # validate formae-plugin.pkl
 mise run validate:schema    # validate the Pkl schema against formae conventions
@@ -106,11 +106,11 @@ instead of resolving it from the Formae Hub.
 
 ## Tests
 
-The unit suite uses a fake `kiac` shell script. It covers CLI argument construction,
+The test suite uses a fake `kiac` shell script. It covers CLI argument construction,
 JSON parsing, async operation state, status timeouts, error codes, and the fake subprocess
 boundary without starting a VM.
 
-The conformance suite runs against a real kiac runtime on macOS. It installs the plugin
+The conformance test suite runs against a real kiac runtime on macOS. It installs the plugin
 first, then exercises CRUD and discovery through the formae agent.
 
 ```bash

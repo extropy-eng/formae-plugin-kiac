@@ -171,7 +171,7 @@ src/
     kiac/
 ```
 
-Lisette packages are directories. A file in `src/domain` is in the `domain`
+Packages are directories. A file in `src/domain` is in the `domain`
 package and is imported as `import "domain"`. The root package contains
 `main.lis` and is the only place that wires concrete adapters together. Tests
 are colocated with the package they exercise.
@@ -803,12 +803,12 @@ Tests are colocated with the package they exercise. The suite has 132 tests:
 The kiac adapter tests use a fake `kiac` executable: a temporary shell script
 that records arguments, emits JSON, writes to `stderr`, sleeps, or exits with a
 chosen status. The application tests use fake ports and fake operation handles.
-No unit test starts a real container runtime. The suite runs on Linux CI.
+No unit test starts a real container runtime. The suite runs locally and on Linux CI.
 
 The Go conformance harness in `conformance_test.go` is guarded by the
 `conformance` build tag. It runs CRUD and discovery tests against the installed
-plugin binary on macOS, using a real formae agent and the real kiac runtime. It
-is separate from the Lisette unit suite.
+plugin binary on macOS, using a real formae agent and the real kiac runtime.
+It is separate from the main test suite.
 
 ## Language choices
 
@@ -901,8 +901,8 @@ the adapters are the place to update.
   conformance runs.
 
 Tasks declare sources and outputs, so mise caches successful work. A repeat
-`mise run test` skips the suite when no source or manifest file changed. A
-repeat `mise run build` skips the transpile when its inputs and declared outputs
+`mise run test` skips the test suite when no source or manifest file changed.
+A repeat `mise run build` skips the transpile when its inputs and declared outputs
 are unchanged.
 
 `mise run check` runs the lint, unit tests, manifest validation, schema
