@@ -102,7 +102,7 @@ formae project init --include kiac@local
 ```
 
 The `@local` suffix tells formae to resolve the schema from the local plugin directory
-instead of the Hub.
+instead of resolving it from the Formae Hub.
 
 ## Tests
 

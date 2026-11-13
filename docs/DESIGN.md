@@ -912,7 +912,7 @@ failing check blocks installation.
 The build writes the plugin version into `schema/pkl/VERSION` so the packaged
 Pkl schema matches the manifest version. `formae-plugin.pkl` declares the
 plugin name, namespace, version, license, category, and minimum formae version
-(`0.90.5`). The release pipeline uses the same manifest to build the Hub
+(`0.90.5`). The release pipeline uses the same manifest to build the Formae Hub
 package.
 
 ## Trade-offs and known limits

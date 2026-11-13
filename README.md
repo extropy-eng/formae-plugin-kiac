@@ -289,7 +289,9 @@ dependencies {
 pkl project resolve
 ```
 
-Use the version shown by `formae plugin info kiac` or on the Hub page.
+Use the version shown by `formae plugin info kiac` or on its
+[Formae Hub](https://hub.platform.engineering/extropy.engineering/kiac) page.
+
 The schema package name is `kiac`, so the import stays `@kiac/core/kiac.pkl`
 whichever version you pin.
 
