@@ -687,7 +687,7 @@ unbounded operation.
 
 <!-- markdownlint-disable MD013 -->
 
-### Cluster create
+### Cluster creation
 
 ```mermaid
 %%{
