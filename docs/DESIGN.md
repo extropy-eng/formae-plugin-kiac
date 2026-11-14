@@ -57,6 +57,8 @@ together.
 
 ### Hexagonal Architecture: Ports & Adapters
 
+<div align="center">
+
 ```mermaid
 %%{
   init: {
@@ -109,12 +111,16 @@ flowchart TB
     class RT runtime
 ```
 
+</div>
+
 The inbound adapter translates formae requests into application calls. The
 application makes resource decisions through ports. The outbound adapter turns
 port calls into CLI commands and turns CLI output back into domain values.
 `main.lis` is the only package that knows every concrete type.
 
 ### Dependency rules
+
+<div align="center">
 
 ```mermaid
 %%{
@@ -152,6 +158,8 @@ flowchart LR
     class IN,OUT adapter
     class APP,PORTS,DOMAIN core
 ```
+
+</div>
 
 The arrows are import directions. There is no arrow from core back to an
 adapter. `domain` has no project imports. `ports` imports `domain`.
