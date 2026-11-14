@@ -716,14 +716,14 @@ unbounded operation.
 sequenceDiagram
     box rgb(248, 250, 252)
         participant SDK as formae SDK
-        participant A as formae adapter
+        participant A as Adapter
         participant App as Application
         participant K as Cluster ports
         participant R as OperationRegistry
     end
 
     SDK->>A: Create(cluster properties)
-    A->>A: parse target and properties
+    A->>A: parse target & properties
     A->>App: create_cluster(target, spec)
     App->>K: find_cluster(target, name)
     alt cluster exists
@@ -768,7 +768,7 @@ sequenceDiagram
 sequenceDiagram
     box rgb(248, 250, 252)
         participant SDK as formae SDK
-        participant A as formae adapter
+        participant A as Adapter
         participant S as Status use case
         participant R as OperationRegistry
         participant K as ClusterReader
