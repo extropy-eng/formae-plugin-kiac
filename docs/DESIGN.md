@@ -693,8 +693,8 @@ unbounded operation.
 %%{
   init: {
     "theme": "base",
+    "fontSize": "16px",
     "themeVariables": {
-      "fontSize": "16px",
       "signalColor": "#818cf8",
       "signalTextColor": "#1e293b",
       "actorBkg": "#f0fdf4",
@@ -709,6 +709,17 @@ unbounded operation.
       "noteTextColor": "#78350f",
       "activationBkgColor": "#c7d2fe",
       "activationBorderColor": "#4f46e5"
+    },
+    "sequence": {
+      "wrap": false,
+      "width": 86,
+      "height": 40,
+      "actorMargin": 17,
+      "messageMargin": 26,
+      "boxMargin": 7,
+      "diagramMarginX": 9,
+      "diagramMarginY": 6,
+      "activationWidth": 8
     },
     "themeCSS": "rect.rect{stroke:#94a3b8;stroke-width:1px}[data-id=SDK] rect,[data-id=A] rect{fill:#eef2ff;stroke:#4f46e5}[data-id=SDK] text,[data-id=A] text{fill:#1e1b4b}"
   }
@@ -722,16 +733,16 @@ sequenceDiagram
         participant R as OperationRegistry
     end
 
-    SDK->>A: Create(cluster properties)
+    SDK->>A: create cluster
     A->>A: parse target & properties
-    A->>App: create_cluster(target, spec)
-    App->>K: find_cluster(target, name)
+    A->>App: create cluster
+    App->>K: find_cluster
     alt cluster exists
         K-->>App: Some(cluster)
-        App-->>A: Success(existing cluster)
+        App-->>A: Success<br/>(existing cluster)
     else cluster absent
         K-->>App: None
-        App->>K: start_create_cluster(target, spec)
+        App->>K: start_create_cluster
         K-->>App: OperationHandle
         App->>R: put(name, handle)
         App-->>A: InProgress
@@ -745,8 +756,8 @@ sequenceDiagram
 %%{
   init: {
     "theme": "base",
+    "fontSize": "16px",
     "themeVariables": {
-      "fontSize": "16px",
       "signalColor": "#818cf8",
       "signalTextColor": "#1e293b",
       "actorBkg": "#f0fdf4",
@@ -762,6 +773,17 @@ sequenceDiagram
       "activationBkgColor": "#c7d2fe",
       "activationBorderColor": "#4f46e5"
     },
+    "sequence": {
+      "wrap": false,
+      "width": 128,
+      "height": 40,
+      "actorMargin": 17,
+      "messageMargin": 26,
+      "boxMargin": 7,
+      "diagramMarginX": 9,
+      "diagramMarginY": 6,
+      "activationWidth": 8
+    },
     "themeCSS": "rect.rect{stroke:#94a3b8;stroke-width:1px}[data-id=SDK] rect,[data-id=A] rect{fill:#eef2ff;stroke:#4f46e5}[data-id=SDK] text,[data-id=A] text{fill:#1e1b4b}"
   }
 }%%
@@ -774,22 +796,22 @@ sequenceDiagram
         participant K as ClusterReader
     end
 
-    SDK->>A: Status(RequestID, NativeID)
-    A->>S: check_status(target, requestID, nativeID)
+    SDK->>A: status
+    A->>S: check_status
     S->>R: get(RequestID)
-    R-->>S: Operation(cluster, handle)
+    R-->>S: Operation<br/>(cluster, handle)
     S->>S: snapshot = handle.snapshot()
     S->>K: find_cluster(probe context)
     alt ready
         S-->>A: Success(cluster)
-    else busy and not timed out
-        S-->>A: InProgress(cluster.status)
-    else absent and process failed
+    else busy and<br/>not timed out
+        S-->>A: InProgress<br/>(cluster.status)
+    else absent and<br/>process failed
         S-->>A: Failure(stderr)
-    else probe failed and timed out
-        S-->>A: Failure(ServiceTimeout)
-    else timed out while converging
-        S-->>A: Failure(ServiceTimeout)
+    else probe failed<br/>and timed out
+        S-->>A: Failure<br/>(ServiceTimeout)
+    else timed out<br/>while converging
+        S-->>A: Failure<br/>(ServiceTimeout)
     end
     A-->>SDK: StatusResult
 ```
