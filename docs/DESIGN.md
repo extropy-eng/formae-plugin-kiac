@@ -721,7 +721,7 @@ unbounded operation.
       "diagramMarginY": 6,
       "activationWidth": 8
     },
-    "themeCSS": "rect.rect{stroke:#94a3b8;stroke-width:1px}[data-id=SDK] rect,[data-id=A] rect{fill:#eef2ff;stroke:#4f46e5}[data-id=SDK] text,[data-id=A] text{fill:#1e1b4b}"
+    "themeCSS": "rect.rect{stroke:#94a3b8;stroke-width:1px}rect[name=SDK],rect[name=A]{fill:#eef2ff;stroke:#4f46e5}[data-id=SDK] text,[data-id=A] text,g:has(rect[name=SDK]) text,g:has(rect[name=A]) text{fill:#1e1b4b}"
   }
 }%%
 sequenceDiagram
@@ -784,7 +784,7 @@ sequenceDiagram
       "diagramMarginY": 6,
       "activationWidth": 8
     },
-    "themeCSS": "rect.rect{stroke:#94a3b8;stroke-width:1px}[data-id=SDK] rect,[data-id=A] rect{fill:#eef2ff;stroke:#4f46e5}[data-id=SDK] text,[data-id=A] text{fill:#1e1b4b}"
+    "themeCSS": "rect.rect{stroke:#94a3b8;stroke-width:1px}rect[name=SDK],rect[name=A]{fill:#eef2ff;stroke:#4f46e5}[data-id=SDK] text,[data-id=A] text,g:has(rect[name=SDK]) text,g:has(rect[name=A]) text{fill:#1e1b4b}"
   }
 }%%
 sequenceDiagram
