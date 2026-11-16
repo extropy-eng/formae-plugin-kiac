@@ -3,7 +3,7 @@ name = "github.com/extropy-eng/formae-plugin-kiac"
 version = "0.1.0"
 
 [dependencies.go]
-"ergo.services/actor/statemachine" = { replacement = "github.com/JeroenSoeters/actor/statemachine@v0.0.0-20260205190926-8b1b2eaf30f4" }
+"ergo.services/actor/statemachine" = { replacement = "github.com/JeroenSoeters/actor/statemachine@v0.0.0-20260414171442-1ef660e4a3bc" }
 "ergo.services/ergo" = { replacement = "github.com/JeroenSoeters/ergo@v1.999.320-pel.6" }
 "github.com/apple/pkl-go" = "v0.14.0"
 "github.com/asdine/storm" = "v2.1.2+incompatible"
@@ -29,7 +29,7 @@ version = "0.1.0"
 "github.com/platform-engineering-labs/formae/pkg/api/model" = "v0.1.1"
 "github.com/platform-engineering-labs/formae/pkg/model" = "v0.1.23"
 "github.com/platform-engineering-labs/formae/pkg/plugin" = "v0.4.2"
-"github.com/platform-engineering-labs/formae/pkg/plugin-conformance-tests" = "v0.2.2"
+"github.com/platform-engineering-labs/formae/pkg/plugin-conformance-tests" = "v0.2.8"
 "github.com/platform-engineering-labs/orbital" = "v0.1.36"
 "github.com/power-devops/perfstat" = "v0.0.0-20240221224432-82ca36839d55"
 "github.com/segmentio/ksuid" = "v1.0.4"
