@@ -92,19 +92,19 @@ class Cluster extends formae.Resource {
   // --- create inputs: kiac cannot read these back, so writeOnly ---
 
   @formae.FieldHint { createOnly = true; writeOnly = true }
-  distro: String = "kubeadm"
+  distro: String? = "kubeadm"
 
   @formae.FieldHint { createOnly = true; writeOnly = true }
-  workers: Int = 0
+  workers: Int? = 0
 
   @formae.FieldHint { createOnly = true; writeOnly = true }
-  cpus: String = "4"
+  cpus: String? = "4"
 
   @formae.FieldHint { createOnly = true; writeOnly = true }
-  memory: String = "2G"
+  memory: String? = "2G"
 
   @formae.FieldHint { createOnly = true; writeOnly = true }
-  cpMemory: String = "4G"
+  cpMemory: String? = "4G"
 
   @formae.FieldHint { createOnly = true; writeOnly = true }
   k8sVersion: String?
@@ -113,46 +113,46 @@ class Cluster extends formae.Resource {
   image: String?
 
   @formae.FieldHint { createOnly = true; writeOnly = true }
-  cni: String = "kindnet"
+  cni: String? = "kindnet"
 
   @formae.FieldHint { createOnly = true; writeOnly = true }
   kernel: String?
 
   @formae.FieldHint { createOnly = true; writeOnly = true }
-  ipFamily: String = "ipv4"
+  ipFamily: String? = "ipv4"
 
   @formae.FieldHint { createOnly = true; writeOnly = true }
-  gateway: Boolean = false
+  gateway: Boolean? = false
 
   @formae.FieldHint { createOnly = true; writeOnly = true }
-  observability: Boolean = false
+  observability: Boolean? = false
 
   @formae.FieldHint { createOnly = true; writeOnly = true }
-  gpuWorkers: Int = 0
+  gpuWorkers: Int? = 0
 
   @formae.FieldHint { createOnly = true; writeOnly = true }
-  gpuImage: String = "fedora-44"
+  gpuImage: String? = "fedora-44"
 
   @formae.FieldHint { createOnly = true; writeOnly = true }
-  gpuDiskSize: String = "20G"
+  gpuDiskSize: String? = "20G"
 
   @formae.FieldHint { createOnly = true; writeOnly = true }
-  gpuResourceDriver: String = "device-plugin"
+  gpuResourceDriver: String? = "device-plugin"
 
   @formae.FieldHint { createOnly = true; writeOnly = true }
-  noEdgeProxy: Boolean = false
+  noEdgeProxy: Boolean? = false
 
   @formae.FieldHint { createOnly = true; writeOnly = true }
-  noLb: Boolean = false
+  noLb: Boolean? = false
 
   @formae.FieldHint { createOnly = true; writeOnly = true }
-  noMetrics: Boolean = false
+  noMetrics: Boolean? = false
 
   @formae.FieldHint { createOnly = true; writeOnly = true }
-  noStorage: Boolean = false
+  noStorage: Boolean? = false
 
   @formae.FieldHint { createOnly = true; writeOnly = true }
-  wait: String = "5m"
+  wait: String? = "5m"
 
   @formae.FieldHint { createOnly = true; writeOnly = true }
   dns: Listing<String>?
@@ -165,22 +165,22 @@ class Cluster extends formae.Resource {
 
   // --- outputs: read back from `kiac get clusters -o json` ---
 
-  @formae.FieldHint {}
+  @formae.FieldHint { hasProviderDefault = true }
   status: String?
 
-  @formae.FieldHint {}
+  @formae.FieldHint { hasProviderDefault = true }
   runningNodes: Int?
 
-  @formae.FieldHint {}
+  @formae.FieldHint { hasProviderDefault = true }
   totalNodes: Int?
 
-  @formae.FieldHint {}
+  @formae.FieldHint { hasProviderDefault = true }
   installedK8sVersion: String?
 
-  @formae.FieldHint {}
+  @formae.FieldHint { hasProviderDefault = true }
   created: String?
 
-  @formae.FieldHint {}
+  @formae.FieldHint { hasProviderDefault = true }
   nodes: Listing<NodeVM>?
 }
 
@@ -216,13 +216,13 @@ class Node extends formae.Resource {
   @formae.FieldHint {}
   state: String?
 
-  @formae.FieldHint {}
+  @formae.FieldHint { hasProviderDefault = true }
   ip: String?
 
-  @formae.FieldHint {}
+  @formae.FieldHint { hasProviderDefault = true }
   image: String?
 
-  @formae.FieldHint {}
+  @formae.FieldHint { hasProviderDefault = true }
   created: String?
 }
 
@@ -297,16 +297,16 @@ class Verification extends formae.Resource {
   @formae.FieldHint { createOnly = true }
   clusterName: String
 
-  @formae.FieldHint {}
+  @formae.FieldHint { hasProviderDefault = true }
   healthy: Boolean?
 
-  @formae.FieldHint {}
+  @formae.FieldHint { hasProviderDefault = true }
   checkedAt: String?
 
-  @formae.FieldHint {}
+  @formae.FieldHint { hasProviderDefault = true }
   duration: String?
 
-  @formae.FieldHint {}
+  @formae.FieldHint { hasProviderDefault = true }
   checks: Listing<Check>?
 }
 
@@ -333,7 +333,7 @@ class Resume extends formae.Resource {
   @formae.FieldHint { createOnly = true }
   nonce: String
 
-  @formae.FieldHint {}
+  @formae.FieldHint { hasProviderDefault = true }
   completed: Boolean?
 }
 

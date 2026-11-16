@@ -9,6 +9,16 @@ import "domain"
 
 #[json(camel_case)]
 #[equality]
+pub struct ClusterNodeOutput {
+  pub name: string,
+  pub state: string,
+  pub ip: string,
+  pub image: string,
+  pub created: string,
+}
+
+#[json(camel_case)]
+#[equality]
 pub struct NodeOutput {
   pub id: string,
   pub cluster_name: string,
@@ -28,7 +38,7 @@ pub struct ClusterOutput {
   pub total_nodes: int,
   pub installed_k8s_version: string,
   pub created: string,
-  pub nodes: Slice<NodeOutput>,
+  pub nodes: Slice<ClusterNodeOutput>,
 }
 
 #[json(camel_case)]
@@ -82,6 +92,16 @@ fn encode<T>(value: T) -> string {
   json.Marshal(value).map_or("", |text| text as string)
 }
 
+fn cluster_node_output(node: domain.Node) -> ClusterNodeOutput {
+  ClusterNodeOutput {
+    name: node.name,
+    state: node.state,
+    ip: node.ip,
+    image: node.image,
+    created: node.created,
+  }
+}
+
 fn node_output(cluster: string, node: domain.Node) -> NodeOutput {
   NodeOutput {
     id: f"{cluster}/{node.name}",
@@ -105,7 +125,7 @@ pub fn encode_properties(props: application.ResourceProperties) -> string {
         total_nodes: cluster.total_nodes,
         installed_k8s_version: cluster.k8s_version,
         created: cluster.created,
-        nodes: cluster.nodes.map(|node| node_output(cluster.name, node)),
+        nodes: cluster.nodes.map(cluster_node_output),
       },
     ),
     application.ResourceProperties.Node { cluster, node } => encode(node_output(
