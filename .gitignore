@@ -1,3 +1,5 @@
+/.pkl-lsp/
+
 /bin/
 /conformance/testdata/PklProject.deps.json
 /schema/pkl/VERSION
