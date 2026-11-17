@@ -1,0 +1,39 @@
+name: Formae Conformance
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}-${{ github.event_name }}
+  cancel-in-progress: false
+
+# Least privilege:
+#   This workflow only needs to read the repo.
+#   jdx/mise-action gets github.token for API calls, which read access covers.
+#
+# Grant write per-job if ever required, never at the top level.
+permissions:
+  contents: read
+
+on:
+  workflow_dispatch:
+
+jobs:
+  check:
+    name: Check
+    runs-on: macos-latest
+    timeout-minutes: 20
+    env:
+      MISE_ENV: conformance
+    steps:
+      - uses: actions/checkout@v7
+
+      - uses: jdx/mise-action@v5
+        with:
+          cache: true
+          cache_restore_retry_budget: 30s
+          cache_save_retry_budget: 90s
+          version: 2026.11.9
+
+      - run: container system start
+
+      - name: Conformance Tests
+        run: |
+          mise run test:conformance

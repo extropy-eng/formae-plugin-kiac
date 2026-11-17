@@ -20,6 +20,7 @@ on:
       - ".config/mise/{config.conformance.toml,mise.conformance.lock}"
       - ".config/mise/{config.docs.toml,mise.docs.lock}"
       - ".config/mise/locks/mise.docs/**/*"
+      - .github/workflows/conformance.yaml
       - "conformance/**/*"
       - "docs/**/*"
       - "examples/**/*"
