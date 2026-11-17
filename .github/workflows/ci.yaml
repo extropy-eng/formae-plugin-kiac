@@ -5,7 +5,7 @@ concurrency:
   cancel-in-progress: false
 
 # Least privilege:
-#   CI only needs to read the repo.
+#   This workflow only needs to read the repo.
 #   jdx/mise-action gets github.token for API calls, which read access covers.
 #
 # Grant write per-job if ever required, never at the top level.
@@ -17,8 +17,10 @@ on:
     branches:
       - trunk
     paths-ignore: &ci-ignored-paths
+      - ".config/mise/{config.conformance.toml,mise.conformance.lock}"
       - ".config/mise/{config.docs.toml,mise.docs.lock}"
       - ".config/mise/locks/mise.docs/**/*"
+      - "conformance/**/*"
       - "docs/**/*"
       - "examples/**/*"
       - .editorconfig
@@ -36,6 +38,7 @@ on:
     paths-ignore: *ci-ignored-paths
 
   workflow_dispatch:
+
 jobs:
   check:
     name: Check
