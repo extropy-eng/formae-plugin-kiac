@@ -2,7 +2,7 @@
 lockfile_platforms = ["macos-arm64"]
 
 [tools]
-container = "latest"
+container = { version = "latest", postinstall = "container system start --enable-kernel-install" }
 "github:saiyam1814/kiac" = { version = "latest", depends = "container" }
 gotestsum = "latest"
 jq = "latest"
