@@ -1,0 +1,35 @@
+/*
+ * Conformance Test: Replace Resource
+ *
+ * Changes `distro` from "k3s" to "kubeadm" and `name` from `sdk-test-<run>`
+ * to `sdk-test-<run>-replaced`. Both are createOnly, so formae deletes the
+ * existing cluster and creates a new one. `name` must change because the
+ * cluster name is the Native ID, and the suite requires a new Native ID to
+ * prove the resource was replaced.
+ */
+amends "@formae/forma.pkl"
+import "@formae/formae.pkl"
+import "@kiac/core/kiac.pkl"
+
+local testRunID = read("env:FORMAE_TEST_RUN_ID")
+local clusterName = "sdk-test-\(testRunID)"
+
+forma {
+  new formae.Stack {
+    label = "plugin-sdk-test-stack"
+    description = "Plugin SDK conformance test stack"
+  }
+
+  new formae.Target {
+    label = "kiac-target"
+    namespace = "KIAC"
+    config = new kiac.Config {}
+  }
+
+  new kiac.Cluster {
+    label = "sdk-test-cluster"
+    name = "\(clusterName)-replaced" // CHANGED from sdk-test-<run>
+    distro = "kubeadm" // CHANGED from k3s
+    workers = 1
+  }
+}

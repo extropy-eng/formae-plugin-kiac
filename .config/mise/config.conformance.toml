@@ -1,0 +1,72 @@
+[settings]
+lockfile_platforms = ["macos-arm64"]
+
+[tools]
+container = "latest"
+"github:saiyam1814/kiac" = { version = "latest", depends = "container" }
+gotestsum = "latest"
+jq = "latest"
+
+[vars]
+# The conformance harness hardcodes ~/.pel/formae/plugins as the plugins directory.
+plugin_base_dir = "$HOME/.pel/formae/plugins"
+
+# install_dir is templated in config.toml against the base value, so it needs
+# the same override here.
+install_dir = "{{ vars.plugin_base_dir }}/{{ vars.plugin_name }}/v{{ vars.plugin_version }}"
+
+[tasks."clean:environment"]
+description = "tears down test resources in the target deployment environment"
+dir = "conformance"
+run = "scripts/ci/clean-environment.sh"
+
+[tasks."test:conformance"]
+# https://docs.formae.ai/plugin-development/tutorial/11-conformance
+description = "runs conformance tests"
+# The harness discovers plugins from ~/.pel/formae/plugins, so the plugin
+# under test must be built and installed there first.
+depends = ["clean:environment", "install"]
+usage = '''
+flag "--type <type>" {
+  help "type of conformance tests to run"
+  long_help """
+  Select the type of conformance tests to run: `all`, `crud`, or `discovery`
+  """
+  choices "all" "crud" "discovery"
+  default "all"
+}
+flag "--filter <strings>" {
+  default ""
+  help "comma-separated filters matching test cases or file paths"
+  long_help """
+  Substring match against test case names (e.g. `AWS::s3-bucket`) or file paths.
+
+  Comma-separated for multiple filters (e.g. `s3-bucket,ec2-instance`).
+  """
+}
+flag "--timeout <minutes>" {
+  help "timeout in minutes per CRUD operation"
+  long_help """
+  Timeout in minutes for each CRUD operation: `apply`, `update`, `replace`, `destroy`.
+
+  Increase for slow resources (e.g. 15 minutes for Google Cloud's Cloud SQL).
+  """
+  default "5"
+}
+flag "--test-timeout <minutes>" {
+  help "timeout in minutes per test"
+  long_help "Timeout in minutes for each conformance test."
+  default "10"
+}
+'''
+dir = "conformance"
+run = """
+  echo "Running {{ usage.type }} conformance tests..."
+
+  export FORMAE_TEST_TYPE="{{ usage.type }}"
+  export FORMAE_TEST_FILTER="{{ usage.filter }}"
+  export FORMAE_TEST_TIMEOUT="{{ usage.timeout }}"
+
+  gotestsum --format testdox -- -tags=conformance -timeout {{ usage.test_timeout}}m ./...
+"""
+depends_post = "clean:environment"

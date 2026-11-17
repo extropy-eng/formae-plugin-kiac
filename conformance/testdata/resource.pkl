@@ -1,0 +1,26 @@
+amends "@formae/forma.pkl"
+import "@formae/formae.pkl"
+import "@kiac/core/kiac.pkl"
+
+local testRunID = read("env:FORMAE_TEST_RUN_ID")
+local clusterName = "sdk-test-\(testRunID)"
+
+forma {
+  new formae.Stack {
+    label = "plugin-sdk-test-stack"
+    description = "Plugin SDK conformance test stack"
+  }
+
+  new formae.Target {
+    label = "kiac-target"
+    namespace = "KIAC"
+    config = new kiac.Config {}
+  }
+
+  new kiac.Cluster {
+    label = "sdk-test-cluster"
+    name = clusterName
+    distro = "k3s"
+    workers = 1
+  }
+}

@@ -1,0 +1,35 @@
+/*
+ * Conformance Test: Update Resource
+ *
+ * KIAC::Cluster::Cluster has no in-place-updatable fields by design:
+ * every field is createOnly, so this fixture changes `workers` from 1 to 2
+ * and therefore exercises replace semantics rather than in-place update.
+ *
+ * In-place update is covered by KIAC::Cluster::Node.state (see node.go).
+ */
+amends "@formae/forma.pkl"
+import "@formae/formae.pkl"
+import "@kiac/core/kiac.pkl"
+
+local testRunID = read("env:FORMAE_TEST_RUN_ID")
+local clusterName = "sdk-test-\(testRunID)"
+
+forma {
+  new formae.Stack {
+    label = "plugin-sdk-test-stack"
+    description = "Plugin SDK conformance test stack"
+  }
+
+  new formae.Target {
+    label = "kiac-target"
+    namespace = "KIAC"
+    config = new kiac.Config {}
+  }
+
+  new kiac.Cluster {
+    label = "sdk-test-cluster"
+    name = clusterName
+    distro = "k3s"
+    workers = 2 // CHANGED from 1
+  }
+}
