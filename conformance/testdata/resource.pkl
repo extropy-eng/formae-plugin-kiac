@@ -21,6 +21,7 @@ forma {
     label = "sdk-test-cluster"
     name = clusterName
     distro = "k3s"
+    cpus = "2"
     workers = 1
   }
 }

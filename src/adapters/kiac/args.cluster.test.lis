@@ -28,6 +28,15 @@ fn k3s_clusters_omit_cni() {
   assert actual.equals(expected)
 }
 
+#[test("cluster arguments pass an explicit cpu count")]
+fn cluster_argv_passes_cpus() {
+  let actual = cluster_create_args(
+    domain.ClusterSpec { name: "dev", cpus: "2", .. },
+  )
+  let expected = ["create", "cluster", "--name", "dev", "--cpus", "2"]
+  assert actual.equals(expected)
+}
+
 #[test("cluster arguments includes GPU, boolean, mount, and publish flags")]
 fn cluster_argv_includes_all_optional_flags() {
   let actual = cluster_create_args(

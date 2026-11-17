@@ -14,6 +14,7 @@ fn cluster_request_decodes_to_spec() -> Result<(), error> {
       \"name\": \"dev\",
       \"distro\": \"k3s\",
       \"workers\": 2,
+      \"cpus\": \"2\",
       \"cni\": \"cilium\"
     }",
   ))?
@@ -21,6 +22,7 @@ fn cluster_request_decodes_to_spec() -> Result<(), error> {
     name: "dev",
     distro: "k3s",
     workers: 2,
+    cpus: "2",
     cni: "cilium",
     ..,
   }

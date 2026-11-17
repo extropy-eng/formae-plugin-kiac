@@ -43,6 +43,11 @@ pub fn cluster_create_args(spec: domain.ClusterSpec) -> Slice<string> {
     args = args.append(spec.cni)
   }
 
+  if !spec.cpus.is_empty() {
+    args = args.append("--cpus")
+    args = args.append(spec.cpus)
+  }
+
   if spec.workers > 0 {
     args = args.append("--workers")
     args = args.append(f"{spec.workers}")

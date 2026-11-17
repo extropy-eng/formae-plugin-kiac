@@ -30,6 +30,7 @@ forma {
     label = "sdk-test-cluster"
     name = "\(clusterName)-replaced" // CHANGED from sdk-test-<run>
     distro = "kubeadm" // CHANGED from k3s
+    cpus = "2"
     workers = 1
   }
 }

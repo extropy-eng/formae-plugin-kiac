@@ -47,6 +47,7 @@ pub struct ClusterSpec {
   pub distro: string,
   pub cni: string,
   pub workers: int,
+  pub cpus: string,
   pub gpu_workers: int,
   pub gpu_image: string,
   pub gateway: bool,
