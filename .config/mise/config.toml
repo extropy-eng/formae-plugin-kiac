@@ -120,7 +120,7 @@ run = """
   echo "✓ This plugin uses PEL forks of actor/statemachine and ergo."
 """
 cache.enabled = true
-sources = ["bin", "lisette.toml"]
+sources = ["bin", "lisette.toml", "src/**/*.lis", "!src/**/*.test.lis"]
 outputs = []
 
 [tasks.check]
