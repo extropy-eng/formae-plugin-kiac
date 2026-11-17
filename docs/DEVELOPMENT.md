@@ -11,14 +11,11 @@ mise trust
 mise install
 ```
 
-`mise trust` approves the repository's `.config/mise/config.toml` and`mise install` installs:
+`mise trust` approves this repository's `mise` configuration and`mise install` installs:
 
 - the pinned Go toolchain
 - [Lisette](https://lisette.run/)
-- Apple's [container](https://github.com/apple/container) CLI
-- [kiac](https://saiyam1814.github.io/kiac/docs/)
 - [Pkl](https://pkl-lang.org/)
-- [gotestsum](https://github.com/gotestyourself/gotestsum) for running conformance tests
 
 The configuration pins Go `1.26` on purpose. Lisette `0.13.0` generates Go bindings
 against the Go `1.26` standard library. Go `1.27` changes `encoding/json.RawMessage`,
@@ -26,6 +23,15 @@ which the Lisette `bindgen` cannot resolve.
 
 Plugin metadata is read from `formae-plugin.pkl`, so the binary name, version, and
 schema version do not drift.
+
+Additionally, running conformance tests requires:
+
+- Apple's [container](https://github.com/apple/container) CLI
+- [kiac](https://saiyam1814.github.io/kiac/docs/)
+- [gotestsum](https://github.com/gotestyourself/gotestsum) as the test runner
+- [jq](https://jqlang.org/)
+
+These can be simply installed by running `mise --env=conformance install`.
 
 ## Project layout
 
@@ -114,13 +120,17 @@ The conformance test suite runs against a real kiac runtime on macOS. It install
 first, then exercises CRUD and discovery through the formae agent.
 
 ```bash
-mise run install
-FORMAE_TEST_RUN_ID=local-1 mise --env=conformance run test:conformance
+mise --env=conformance run test:conformance
+
+# or using the corresponding shell alias
+test-conformance
 ```
 
-The conformance environment also exposes `test:conformance:crud` and
-`test:conformance:discovery` for narrower runs. The suite creates real containers
-and cleans them up, so the `apple/container` system must be run beforehand.
+Run this task with the `--help` flag to understand available flags.
+One of those is the `--type` flag which can be used for running narrower tests.
+
+The `apple/container` system must be running first as the conformance test suite creates
+real containers and cleans them up afterwards.
 
 CI runs `mise run check` on Linux, and runs conformance tests on macOS
 when triggered.

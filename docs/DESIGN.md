@@ -835,10 +835,9 @@ that records arguments, emits JSON, writes to `stderr`, sleeps, or exits with a
 chosen status. The application tests use fake ports and fake operation handles.
 No unit test starts a real container runtime. The suite runs locally and on Linux CI.
 
-The Go conformance harness in `conformance_test.go` is guarded by the
-`conformance` build tag. It runs CRUD and discovery tests against the installed
-plugin binary on macOS, using a real formae agent and the real kiac runtime.
-It is separate from the main test suite.
+The conformance test suite located under [`conformance/`](../conformance/) runs CRUD and
+discovery tests against the installed plugin binary on macOS, using a real formae agent
+and the real `kiac` CLI. It is deliberately separate from the main test suite.
 
 ## Language choices
 
