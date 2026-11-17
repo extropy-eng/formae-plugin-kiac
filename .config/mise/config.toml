@@ -92,11 +92,11 @@ outputs = ["target"]
 description = "build the plugin binary"
 depends = "schema-version"
 run = """
-	lis build --go-flags "{{ vars.go_flags }} -o bin/{{ vars.plugin_name }}" --sourcemap
+	lis build --go-flags "{{ vars.go_flags }} -o ../bin/{{ vars.plugin_name }}" --sourcemap
 """
 cache.enabled = true
 sources = ["lisette.toml", "src/**/*.lis", "!src/**/*.test.lis"]
-outputs = ["target"]
+outputs = ["bin", "target"]
 
 [tasks.clean]
 description = "removes build artifacts"
@@ -109,7 +109,7 @@ run = "rm -rf bin/ schema/pkl/VERSION target/"
 description = "checks this plugin uses PEL forks of actor/statemachine and ergo"
 run = """
   mise run build 1> /dev/null 2>&1
-  deps="$(go version -m target/bin/{{ vars.plugin_name }})"
+  deps="$(go version -m bin/{{ vars.plugin_name }})"
 
   echo $deps | grep -q "JeroenSoeters/actor/statemachine" \
     || { echo "✘ This plugin does not use the PEL fork of ergo.services/actor/statemachine." 1>&2; exit 1; }
@@ -120,7 +120,7 @@ run = """
   echo "✓ This plugin uses PEL forks of actor/statemachine and ergo."
 """
 cache.enabled = true
-sources = ["lisette.toml", "target/bin/{{ vars.plugin_name }}"]
+sources = ["bin", "lisette.toml"]
 outputs = []
 
 [tasks.check]
@@ -143,7 +143,7 @@ run = """
   rm -rf {{ vars.plugin_base_dir }}/{{ vars.plugin_name }}
 
   mkdir -p {{ vars.install_dir }}/schema
-  cp -p target/bin/{{ vars.plugin_name }} {{ vars.install_dir }}/{{ vars.plugin_name }}
+  cp -p bin/{{ vars.plugin_name }} {{ vars.install_dir }}/{{ vars.plugin_name }}
   cp -pr schema/* {{ vars.install_dir }}/schema/
   cp -p formae-plugin.pkl {{ vars.install_dir }}/
 
@@ -157,6 +157,6 @@ sources = [
   "formae-plugin.pkl",
   "lisette.toml",
   "schema",
-  "target/bin/{{ vars.plugin_name }}",
+  "bin",
 ]
 outputs = []
