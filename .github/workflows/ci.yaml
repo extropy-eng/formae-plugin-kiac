@@ -17,8 +17,8 @@ on:
     branches:
       - trunk
     paths-ignore: &ci-ignored-paths
-      - ".config/mise/{config.conformance.toml,mise.conformance.lock}"
-      - ".config/mise/{config.docs.toml,mise.docs.lock}"
+      - .config/mise/config.{conformance,docs}.toml
+      - .config/mise/mise.{conformance,docs}.lock
       - ".config/mise/locks/mise.docs/**/*"
       - .github/workflows/conformance.yaml
       - "conformance/**/*"
