@@ -3,8 +3,8 @@
 lockfile_version = 4
 
 [[tools.markdownlint-cli2]]
-version = "0.24.0"
-aube = { path = "locks/mise.docs/markdownlint-cli2/0.24.0", digest = "sha256:b38be5102270e6a898ac4ecc1dbe772e511f6dd4f1000dc6c6df8a992cecc761" }
+version = "0.24.2"
+aube = { path = "locks/mise.docs/markdownlint-cli2/0.24.2", digest = "sha256:db093e2bac71e1c526358d67e3105d4d68674de1f8a7ab8d2150ca4489f89451" }
 backend = "npm:markdownlint-cli2"
 specifiers = ["latest"]
 
