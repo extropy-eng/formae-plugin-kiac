@@ -17,14 +17,16 @@ on:
     branches:
       - trunk
     paths-ignore: &ci-ignored-paths
-      - .config/mise/config.{conformance,docs}.toml
-      - .config/mise/mise.{conformance,docs}.lock
+      - .config/mise/config.{conformance,docs,runners}.toml
+      - .config/mise/mise.{conformance,docs,runers}.lock
       - ".config/mise/locks/mise.docs/**/*"
+      - .github/mac-runner.yaml
       - .github/workflows/conformance.yaml
       - "conformance/**/*"
       - "docs/**/*"
       - "examples/**/*"
       - .editorconfig
+      - .fnox.runners.toml
       - .gitattributes
       - .gitignore
       - .markdownlint-cli2.yaml

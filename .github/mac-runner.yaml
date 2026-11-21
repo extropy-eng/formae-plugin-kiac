@@ -1,0 +1,20 @@
+# config for https://github.com/omniaura/mac-runner
+version: 1
+
+settings:
+  isolation: container    # none | user | container
+  pause-on-battery: true
+  battery-threshold: 30   # percent, 5-95
+  quiet-hours:            # never | { start, end } (default: global schedule)
+    start: "01:00"
+    end: "07:00"
+
+runners: #[]
+  - name: m3max-runner
+    org: extropy-eng      # or `repo: <org>/<repo>` for a repository
+    isolation: user       # none | user | container | global (default: global)
+    enable-gui: false     # default: false (headless)
+    labels:               # default: [macos, mac-runner]
+      - mac-runner
+    count: 1              # creates m3max-runner-1...m3max-runner-n
+    # open-files: 65536     # default: the global limit

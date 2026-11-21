@@ -1,0 +1,6 @@
+#:schema https://fnox.jdx.dev/schema.json
+
+[secrets.GH_ORG_TOKEN]
+description = "used for registering self-hosted GitHub Actions runners"
+value = "op://Automation/GitHub Automation/token"
+env = "exec"
