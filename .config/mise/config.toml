@@ -1,4 +1,4 @@
-min_version = { hard = "2026.11.9" }
+min_version = { hard = "2026.11.12" }
 
 [settings]
 env_shell_expand = true
@@ -17,7 +17,7 @@ test-conformance = "mise --env=conformance run test:conformance"
 # Lisette 0.13.0's bindgen only knows Go 1.26 stdlib typedefs.
 # Go 1.27 aliases `encoding/json.RawMessage` to `jsontext.Value`,
 # which Lisette cannot resolve, so this project pins the older Go toolchain.
-go = "prefix:1.26"
+go = { version = "prefix:1.26", bump = false }
 
 pkl = "latest"
 
