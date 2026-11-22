@@ -23,6 +23,11 @@ on:
       - .config/mise/mise.conformance.lock
       - .github/workflows/conformance.yaml
       - "conformance/**"
+      - "schema/**"
+      - "src/**"
+      - "!src/**/*.test.lis"
+      - formae-plugin.pkl
+      - lisette.toml
 
   workflow_dispatch:
 
