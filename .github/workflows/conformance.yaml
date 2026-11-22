@@ -13,6 +13,15 @@ permissions:
   contents: read
 
 on:
+  push:
+    branches:
+      - trunk
+    paths:
+      - .config/mise/config.conformance.toml
+      - .config/mise/mise.conformance.lock
+      - .github/workflows/conformance.yaml
+      - "conformance/**"
+
   workflow_dispatch:
 
 jobs:
