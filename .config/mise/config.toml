@@ -54,6 +54,14 @@ cache.enabled = true
 sources = ["formae-plugin.pkl"]
 outputs = []
 
+[tasks.emit]
+description = "emits Go code into the target directory"
+run = "lis emit"
+cache.enabled = true
+sources = ["lisette.toml", "src/**/*.lis"]
+outputs = ["target"]
+silent = true
+
 [tasks.schema-version]
 description = "dervies the schema version from the plugin manifest"
 run = "mkdir -p schema/pkl && echo {{ vars.plugin_version }} >| schema/pkl/VERSION"
@@ -63,20 +71,19 @@ outputs = ["schema/pkl/VERSION"]
 
 [tasks."validate:schema"]
 description = "validates the plugin schema against formae conventions"
-depends = "schema-version"
+depends = ["emit", "schema-version"]
 run = """
-  lis check . --deny warnings 1> /dev/null 2>&1
-
   cd target/ && cp -p ../formae-plugin.pkl .
   go run {{ vars.formae_repo }}/pkg/plugin/testutil/cmd/verify-schema \
     --namespace {{ vars.plugin_namespace }} ../schema/pkl
 """
 cache.enabled = true
-sources = ["lisette.toml", "schema"]
+sources = ["formae-plugin.pkl", "lisette.toml", "schema/**/*", "target/go.{mod,sum}"]
 outputs = []
 
 [tasks.lint]
 description = "lints and typechecks test and production code"
+depends = "emit"
 run = "lis check . --deny warnings"
 cache.enabled = true
 sources = ["lisette.toml", "src/**/*.lis"]
@@ -84,6 +91,7 @@ outputs = ["target"]
 
 [tasks."test"]
 description = "transpiles, builds and runs all tests"
+depends = "emit"
 run = "lis test --go-flags {{ vars.go_flags }}"
 cache.enabled = true
 sources = ["lisette.toml", "src/**/*.lis"]
@@ -91,12 +99,12 @@ outputs = ["target"]
 
 [tasks.build]
 description = "build the plugin binary"
-depends = "schema-version"
+depends = ["emit", "schema-version"]
 run = """
 	lis build --go-flags "{{ vars.go_flags }} -o ../bin/{{ vars.plugin_name }}" --sourcemap
 """
 cache.enabled = true
-sources = ["lisette.toml", "src/**/*.lis", "!src/**/*.test.lis"]
+sources = ["formae-plugin.pkl", "lisette.toml", "src/**/*.lis", "!src/**/*.test.lis"]
 outputs = ["bin", "target"]
 
 [tasks.clean]
@@ -108,8 +116,8 @@ run = "rm -rf bin/ schema/pkl/VERSION target/"
 # in the formae agent.
 [tasks."check:deps"]
 description = "checks this plugin uses PEL forks of actor/statemachine and ergo"
+depends = "build"
 run = """
-  mise run build 1> /dev/null 2>&1
   deps="$(go version -m bin/{{ vars.plugin_name }})"
 
   echo $deps | grep -q "JeroenSoeters/actor/statemachine" \
@@ -121,7 +129,7 @@ run = """
   echo "✓ This plugin uses PEL forks of actor/statemachine and ergo."
 """
 cache.enabled = true
-sources = ["bin", "lisette.toml", "src/**/*.lis", "!src/**/*.test.lis"]
+sources = ["bin/{{ vars.plugin_name }}", "lisette.toml", "src/**/*.lis", "!src/**/*.test.lis"]
 outputs = []
 
 [tasks.check]
@@ -154,10 +162,5 @@ run = """
   echo "  ✓ Manifest: {{ vars.install_dir }}/formae-plugin.pkl"
 """
 cache.enabled = true
-sources = [
-  "formae-plugin.pkl",
-  "lisette.toml",
-  "schema",
-  "bin",
-]
+sources = ["bin/{{ vars.plugin_name }}", "formae-plugin.pkl", "lisette.toml", "schema/**/*"]
 outputs = []
