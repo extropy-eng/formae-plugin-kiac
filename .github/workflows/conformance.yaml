@@ -17,6 +17,8 @@ on:
     branches:
       - trunk
     paths:
+      - .config/mise/config.toml
+      - .config/mise/mise.lock
       - .config/mise/config.conformance.toml
       - .config/mise/mise.conformance.lock
       - .github/workflows/conformance.yaml
