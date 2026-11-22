@@ -20,7 +20,7 @@ jobs:
     name: Check
     # Apple's container runtime needs Virtualization.framework, which
     # GitHub-hosted macOS runners do not expose (VZErrorDomain Code=2).
-    runs-on: [self-hosted, macOS, ARM64]
+    runs-on: mac-runner
     timeout-minutes: 20
     env:
       MISE_ENV: conformance
