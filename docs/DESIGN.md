@@ -635,7 +635,9 @@ output pipes; `WaitDelay` bounds that final drain.
 The plugin assumes the agent may retry any operation:
 
 - Creating a cluster that already exists returns success with observed
-  properties.
+  properties once it is ready. While the existing cluster is still booting,
+  create returns in progress with the cluster status and starts no second
+  process.
 - Deleting a cluster that does not exist returns success.
 - Deleting a node, image, verification, or resume resource is a no-op.
 - Updating a node to its current power state is a no-op.
@@ -742,9 +744,12 @@ sequenceDiagram
     A->>A: parse target & properties
     A->>App: create cluster
     App->>K: find_cluster
-    alt cluster exists
+    alt cluster exists and ready
         K-->>App: Some(cluster)
         App-->>A: Success<br/>(existing cluster)
+    else cluster exists and busy
+        K-->>App: Some(cluster)
+        App-->>A: InProgress<br/>(cluster.status)
     else cluster absent
         K-->>App: None
         App->>K: start_create_cluster

@@ -5,11 +5,60 @@
 import "go:context"
 
 import "domain"
+import "ports"
+
+struct RecordingCreateLifecycle { starts: mut Ref<mut Slice<string>> }
+
+impl RecordingCreateLifecycle {
+  fn start_create_cluster(
+    self: mut Ref<RecordingCreateLifecycle>,
+    _target: domain.TargetConfig,
+    spec: domain.ClusterSpec,
+  ) -> ports.OperationHandle {
+    self.starts.* = self.starts.*.append(spec.name)
+    FakeHandle { .. }
+  }
+
+  fn start_resume_cluster(
+    self: RecordingCreateLifecycle,
+    _target: domain.TargetConfig,
+    _cluster: string,
+  ) -> ports.OperationHandle {
+    FakeHandle { .. }
+  }
+
+  fn delete_cluster(
+    self: RecordingCreateLifecycle,
+    _ctx: context.Context,
+    _target: domain.TargetConfig,
+    _name: string,
+  ) -> Result<(), domain.Failure> {
+    Ok(())
+  }
+}
+
+fn app_with_create_lifecycle(
+  clusters: Slice<domain.Cluster>,
+) -> (mut Application, RecordingCreateLifecycle) {
+  let mut starts: Slice<string> = []
+  let mut lifecycle = RecordingCreateLifecycle { starts: &starts }
+  (
+    new(
+      FakeClusterReader { clusters, start_calls: [] },
+      &lifecycle,
+      FakeNodePower { .. },
+      FakeImageLoader { .. },
+      FakeGpuCompat { .. },
+      FakeVerifier { .. },
+    ),
+    lifecycle,
+  )
+}
 
 #[test("creating an existing cluster is idempotent")]
 fn create_existing_cluster_is_idempotent() -> Result<(), error> {
-  let fake = FakeClusterReader { clusters: [ready_cluster()], .. }
-  let mut app = app_with_ports(fake)
+  let (app, fake) = app_with_create_lifecycle([ready_cluster()])
+  let mut app = app
   let actual = app.create_cluster(
     context.Background(),
     target(),
@@ -23,7 +72,24 @@ fn create_existing_cluster_is_idempotent() -> Result<(), error> {
     properties: ResourceProperties.Cluster(ready_cluster()),
   }
   assert actual.equals(expected)
-  assert fake.start_calls.is_empty()
+  assert fake.starts.*.is_empty()
+  Ok(())
+}
+
+#[test("creating an existing busy cluster stays in progress")]
+fn create_existing_busy_cluster_is_in_progress() -> Result<(), error> {
+  let (app, fake) = app_with_create_lifecycle([busy_cluster()])
+  let mut app = app
+  let actual = app.create_cluster(
+    context.Background(),
+    target(),
+    domain.ClusterSpec { name: "dev", .. },
+  )?
+  assert actual.native_id == "dev"
+  assert actual.request_id == "dev"
+  assert actual.status == CreateStatus.InProgress
+  assert actual.properties.equals(ResourceProperties.None)
+  assert fake.starts.*.is_empty()
   Ok(())
 }
 

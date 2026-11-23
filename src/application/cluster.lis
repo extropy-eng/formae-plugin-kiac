@@ -45,15 +45,29 @@ impl Application {
       ))
     }
     match self.reader.find_cluster(ctx, target, spec.name)? {
-      Some(cluster) => Ok(
-        CreateOutcome {
-          native_id: cluster.name,
-          request_id: cluster.name,
-          status: CreateStatus.Success,
-          message: "",
-          properties: ResourceProperties.Cluster(cluster),
-        },
-      ),
+      Some(cluster) => {
+        if domain.is_ready(cluster) {
+          Ok(
+            CreateOutcome {
+              native_id: cluster.name,
+              request_id: cluster.name,
+              status: CreateStatus.Success,
+              message: "",
+              properties: ResourceProperties.Cluster(cluster),
+            },
+          )
+        } else {
+          Ok(
+            CreateOutcome {
+              native_id: cluster.name,
+              request_id: cluster.name,
+              status: CreateStatus.InProgress,
+              message: cluster.status,
+              properties: ResourceProperties.None,
+            },
+          )
+        }
+      },
       None => {
         let handle = self.lifecycle.start_create_cluster(target, spec)
         self.ops.put(spec.name, handle)
