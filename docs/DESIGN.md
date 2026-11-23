@@ -487,7 +487,10 @@ these values into `resource.ProgressResult` and JSON.
 - `target.lis`: parses raw target JSON into `domain.TargetConfig` and applies
   defaults.
 - `properties.lis`: decodes request properties into domain specs and encodes
-  domain values into read-property JSON.
+  domain values into read-property JSON. Create and update responses project
+  only fields kiac can observe; GPU compatibility responses carry `id`,
+  `clusterName`, and `namespace`, never the write-only `enabled` or
+  `rotateCertificate`.
 - `results.lis`: maps `ErrorKind` to `resource.OperationErrorCode`, builds
   progress results, and provides the raw-message helper.
 

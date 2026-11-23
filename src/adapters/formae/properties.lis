@@ -42,15 +42,6 @@ pub struct ClusterOutput {
 }
 
 #[json(camel_case)]
-pub struct GpuCompatOutput {
-  pub id: string,
-  pub cluster_name: string,
-  pub namespace: string,
-  pub enabled: bool,
-  pub rotate_certificate: bool,
-}
-
-#[json(camel_case)]
 pub struct GpuCompatStateOutput {
   pub id: string,
   pub cluster_name: string,
@@ -133,12 +124,10 @@ pub fn encode_properties(props: application.ResourceProperties) -> string {
       node,
     )),
     application.ResourceProperties.GpuCompat(gpu) => encode(
-      GpuCompatOutput {
+      GpuCompatStateOutput {
         id: gpu.id,
         cluster_name: gpu.cluster_name,
         namespace: gpu.namespace,
-        enabled: gpu.enabled,
-        rotate_certificate: false,
       },
     ),
     application.ResourceProperties.GpuCompatState(state) => encode(

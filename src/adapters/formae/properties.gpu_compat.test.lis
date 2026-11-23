@@ -19,6 +19,21 @@ fn gpu_compat_read_omits_write_only_fields() {
   assert !text.contains("rotateCertificate")
 }
 
+#[test("GPU create properties omit write-only fields")]
+fn gpu_compat_create_omits_write_only_fields() {
+  let text = encode_properties(application.ResourceProperties.GpuCompat(
+    domain.GpuCompat {
+      id: "dev/default",
+      cluster_name: "dev",
+      namespace: "default",
+      enabled: true,
+    },
+  ))
+  assert text.contains("\"namespace\":\"default\"")
+  assert !text.contains("enabled")
+  assert !text.contains("rotateCertificate")
+}
+
 #[test("GPU compatibility names decode")]
 fn gpu_compat_names_decode() -> Result<(), error> {
   let gpu = decode_gpu_compat(raw_message(
