@@ -15,16 +15,24 @@ impl Application {
     request_id: string,
     native_id: string,
   ) -> StatusOutcome {
-    let cluster_name = self.ops
-      .get(request_id)
-      .map_or(request_id, |operation| operation.cluster)
-    let snapshot = self.ops
-      .get(request_id)
-      .map(|operation| operation.handle.snapshot())
+    let operation = self.ops.get(request_id)
+    let cluster_name = operation.map_or(request_id, |op| op.cluster)
+    let snapshot = operation.map(|op| op.handle.snapshot())
     let expired = snapshot.map_or(false, |state| {
       time.Since(state.started_at) >
       time.Duration(target.default_wait_seconds as int64) * time.Second
     })
+
+    if let Some(state) = snapshot {
+      if state.done && state.error.is_some() {
+        return StatusOutcome.Failure {
+          failure: domain.fail(
+            domain.ErrorKind.GeneralServiceException,
+            state.error.unwrap_or(""),
+          ),
+        }
+      }
+    }
 
     let (probe_ctx, cancel) = context.WithTimeout(
       ctx,
@@ -48,25 +56,15 @@ impl Application {
           }
         }
       },
-      Ok(None) => match snapshot {
-        Some(snapshot) if snapshot.done && snapshot.error.is_some() => {
-          StatusOutcome.Failure {
-            failure: domain.fail(
-              domain.ErrorKind.GeneralServiceException,
-              snapshot.error.unwrap_or(""),
-            ),
+      Ok(None) => {
+        if expired {
+          StatusOutcome.Failure { failure: timeout_failure(cluster_name) }
+        } else {
+          StatusOutcome.InProgress {
+            native_id: outcome_id(native_id, cluster_name),
+            message: f"waiting for cluster {cluster_name}",
           }
-        },
-        _ => {
-          if expired {
-            StatusOutcome.Failure { failure: timeout_failure(cluster_name) }
-          } else {
-            StatusOutcome.InProgress {
-              native_id: outcome_id(native_id, cluster_name),
-              message: f"waiting for cluster {cluster_name}",
-            }
-          }
-        },
+        }
       },
       Err(failure) => {
         if expired {

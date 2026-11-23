@@ -598,19 +598,22 @@ stores an `OperationHandle` in a mutex-guarded registry keyed by cluster name.
 Status reads the handle snapshot, probes the cluster with a bounded context,
 and decides:
 
-1. If the cluster exists and its running node count equals its total node
+1. If the process is done with an error, general service exception with the
+   captured error string.
+2. If the cluster exists and its running node count equals its total node
    count, success.
-2. If the cluster exists but is not ready and the convergence deadline has not
+3. If the cluster exists but is not ready and the convergence deadline has not
    passed, in progress with the cluster status.
-3. If the cluster exists and the deadline has passed, service timeout.
-4. If the cluster is absent and the process failed, general service exception
-   with the captured error string.
+4. If the cluster exists and the deadline has passed, service timeout.
 5. If the probe failed and the deadline has not passed, in progress with the
    probe error message.
 6. If the probe failed and the deadline has passed, service timeout.
 
-The plugin prefers observed cluster state over the process exit code. A
-background process may exit while the cluster is still converging.
+A non-zero process exit is authoritative: a failed create or resume reports its
+captured stderr even when a partial or already-ready cluster exists. A
+successful exit does not imply success. A background process may exit while the
+cluster is still converging, so status stays in progress until the cluster is
+ready or the deadline passes.
 
 #### Bounded status probes
 

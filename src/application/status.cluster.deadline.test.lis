@@ -76,6 +76,28 @@ fn probe_failure_before_deadline_remains_in_progress() {
   assert message.contains("unreachable")
 }
 
+#[test("a probe failure after a failed create surfaces the create error")]
+fn probe_failure_after_failed_create_is_failure() {
+  let mut app = app_with_kiac_reader_failure()
+  app.ops.put(
+    "dev",
+    FakeHandle {
+      state: domain.ProcessSnapshot {
+        done: true,
+        error: Some("boom: cannot create"),
+        ..,
+      },
+      ..,
+    },
+  )
+  let actual = app.check_status(context.Background(), target(), "dev", "")
+  let StatusOutcome.Failure { failure } = actual else {
+    assert false
+    return
+  }
+  assert failure.message.contains("boom")
+}
+
 #[test("an expired busy cluster says it did not converge")]
 fn expired_cluster_message() {
   let mut app = app_with_clusters([busy_cluster()])

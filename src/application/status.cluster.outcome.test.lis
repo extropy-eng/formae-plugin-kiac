@@ -52,6 +52,50 @@ fn failed_background_create_surfaces_stderr() {
   assert failure.message.contains("boom")
 }
 
+#[test("a failed background create fails with a partial cluster")]
+fn failed_create_with_partial_cluster_is_failure() {
+  let mut app = app_with_clusters([busy_cluster()])
+  app.ops.put(
+    "dev",
+    FakeHandle {
+      state: domain.ProcessSnapshot {
+        done: true,
+        error: Some("boom: cannot create"),
+        ..,
+      },
+      ..,
+    },
+  )
+  let actual = app.check_status(context.Background(), target(), "dev", "")
+  let StatusOutcome.Failure { failure } = actual else {
+    assert false
+    return
+  }
+  assert failure.message.contains("boom")
+}
+
+#[test("a failed background resume fails with a ready cluster")]
+fn failed_resume_with_ready_cluster_is_failure() {
+  let mut app = app_with_clusters([ready_cluster()])
+  app.ops.put(
+    "dev",
+    FakeHandle {
+      state: domain.ProcessSnapshot {
+        done: true,
+        error: Some("resume failed"),
+        ..,
+      },
+      ..,
+    },
+  )
+  let actual = app.check_status(context.Background(), target(), "dev", "dev/n1")
+  let StatusOutcome.Failure { failure } = actual else {
+    assert false
+    return
+  }
+  assert failure.message.contains("resume failed")
+}
+
 #[test("a missing cluster before the deadline reports waiting")]
 fn missing_cluster_before_deadline_reports_waiting() {
   let mut app = app_with_clusters([])
