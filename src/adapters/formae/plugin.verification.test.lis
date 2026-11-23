@@ -59,6 +59,24 @@ fn sdk_read_verification() -> Result<(), error> {
   Ok(())
 }
 
+#[test("a malformed verification create returns InvalidRequest")]
+fn malformed_verification_create_is_invalid() -> Result<(), error> {
+  let mut plugin = plugin_with_kiac("/bin/true")
+  let request = resource.CreateRequest {
+    ResourceType: TYPE_VERIFICATION,
+    Label: "",
+    Properties: raw_message("{"),
+    TargetConfig: raw_message("{}"),
+  }
+  let result = plugin.Create(context.Background(), &request)?
+  let Some(progress) = result.ProgressResult else {
+    assert false
+    return Ok(())
+  }
+  assert progress.ErrorCode == resource.OperationErrorCodeInvalidRequest
+  Ok(())
+}
+
 #[test("the SDK delete path treats verification as a no-op")]
 fn sdk_delete_verification_is_noop() -> Result<(), error> {
   let mut plugin = plugin_with_kiac("/bin/true")

@@ -28,6 +28,12 @@ fn gpu_compat_names_decode() -> Result<(), error> {
   Ok(())
 }
 
+#[test("malformed desired GPU properties are an invalid request")]
+fn malformed_desired_gpu_is_invalid() {
+  let failure = expect_failure(decode_desired_gpu_compat(raw_message("{")))
+  assert failure.kind == domain.ErrorKind.InvalidRequest
+}
+
 #[test("decoded GPU compatibility spec carries its fields")]
 fn decoded_gpu_spec_carries_fields() -> Result<(), error> {
   let gpu = decode_gpu_compat(raw_message(

@@ -117,7 +117,10 @@ impl Plugin {
         }
       },
       TYPE_VERIFICATION => {
-        let spec = decode_verification(request.Properties)
+        let spec = match decode_verification(request.Properties) {
+          Ok(spec) => spec,
+          Err(failure) => return Ok(create_failure(failure, "", "")),
+        }
         match self.app.create_verification(spec) {
           Ok(outcome) => Ok(create_result(outcome, encode_properties)),
           Err(failure) => Ok(create_failure(failure, "", "")),
@@ -260,7 +263,10 @@ impl Plugin {
           Ok(target) => target,
           Err(failure) => return Ok(update_failure(failure, request.NativeID)),
         }
-        let desired = decode_desired_gpu_compat(request.DesiredProperties)
+        let desired = match decode_desired_gpu_compat(request.DesiredProperties) {
+          Ok(desired) => desired,
+          Err(failure) => return Ok(update_failure(failure, request.NativeID)),
+        }
         match self.app.update_gpu_compat(ctx, target, request.NativeID, desired) {
           Ok(outcome) => Ok(update_result(outcome, encode_properties)),
           Err(failure) => Ok(update_failure(failure, request.NativeID)),

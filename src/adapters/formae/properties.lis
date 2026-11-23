@@ -338,16 +338,22 @@ pub fn decode_gpu_compat(
   )
 }
 
-pub fn decode_desired_gpu_compat(raw: json.RawMessage) -> domain.GpuCompatSpec {
+pub fn decode_desired_gpu_compat(
+  raw: json.RawMessage,
+) -> Result<domain.GpuCompatSpec, domain.Failure> {
   let mut parsed = GpuCompatPropsRaw { .. }
-  let _ = json.Unmarshal(raw.0, &parsed)
-  domain.GpuCompatSpec {
-    id: parsed.id,
-    cluster_name: parsed.cluster_name,
-    namespace: parsed.namespace,
-    enabled: parsed.enabled,
-    rotate_certificate: parsed.rotate_certificate,
-  }
+  json
+    .Unmarshal(raw.0, &parsed)
+    .map_err(|e| domain.fail(domain.ErrorKind.InvalidRequest, e.Error()))?
+  Ok(
+    domain.GpuCompatSpec {
+      id: parsed.id,
+      cluster_name: parsed.cluster_name,
+      namespace: parsed.namespace,
+      enabled: parsed.enabled,
+      rotate_certificate: parsed.rotate_certificate,
+    },
+  )
 }
 
 pub fn decode_image(
@@ -366,10 +372,14 @@ pub fn decode_image(
   )
 }
 
-pub fn decode_verification(raw: json.RawMessage) -> domain.VerificationSpec {
+pub fn decode_verification(
+  raw: json.RawMessage,
+) -> Result<domain.VerificationSpec, domain.Failure> {
   let mut parsed = VerificationPropsRaw { .. }
-  let _ = json.Unmarshal(raw.0, &parsed)
-  domain.VerificationSpec { cluster_name: parsed.cluster_name }
+  json
+    .Unmarshal(raw.0, &parsed)
+    .map_err(|e| domain.fail(domain.ErrorKind.InvalidRequest, e.Error()))?
+  Ok(domain.VerificationSpec { cluster_name: parsed.cluster_name })
 }
 
 pub fn decode_resume(

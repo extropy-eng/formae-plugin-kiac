@@ -106,6 +106,27 @@ fn sdk_delete_gpu_compat() -> Result<(), error> {
   Ok(())
 }
 
+#[test("a malformed GPU update returns InvalidRequest")]
+fn malformed_gpu_update_is_invalid() -> Result<(), error> {
+  let mut plugin = plugin_with_kiac("/bin/true")
+  let request = resource.UpdateRequest {
+    NativeID: "dev/default",
+    ResourceType: TYPE_GPU_COMPAT,
+    Label: "",
+    PriorProperties: raw_message("{}"),
+    DesiredProperties: raw_message("{"),
+    PatchDocument: None,
+    TargetConfig: raw_message("{}"),
+  }
+  let result = plugin.Update(context.Background(), &request)?
+  let Some(progress) = result.ProgressResult else {
+    assert false
+    return Ok(())
+  }
+  assert progress.ErrorCode == resource.OperationErrorCodeInvalidRequest
+  Ok(())
+}
+
 #[test("GPU delete does not reject a malformed target")]
 fn gpu_delete_ignores_bad_target() -> Result<(), error> {
   let mut plugin = plugin_with_kiac("/bin/true")

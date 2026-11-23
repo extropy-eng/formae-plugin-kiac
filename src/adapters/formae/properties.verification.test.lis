@@ -2,10 +2,19 @@
 //
 // SPDX-License-Identifier: MIT
 
+import "domain"
+
 #[test("verification names decode")]
-fn verification_names_decode() {
+fn verification_names_decode() -> Result<(), error> {
   let verification = decode_verification(raw_message(
     "{\"clusterName\":\"dev\"}",
-  ))
+  ))?
   assert verification.cluster_name == "dev"
+  Ok(())
+}
+
+#[test("malformed verification properties are an invalid request")]
+fn malformed_verification_is_invalid() {
+  let failure = expect_failure(decode_verification(raw_message("{")))
+  assert failure.kind == domain.ErrorKind.InvalidRequest
 }
