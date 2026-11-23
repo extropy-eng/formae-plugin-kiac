@@ -18,10 +18,7 @@ impl Application {
     let operation = self.ops.get(request_id)
     let cluster_name = operation.map_or(request_id, |op| op.cluster)
     let snapshot = operation.map(|op| op.handle.snapshot())
-    let expired = snapshot.map_or(false, |state| {
-      time.Since(state.started_at) >
-      time.Duration(target.default_wait_seconds as int64) * time.Second
-    })
+    let wait_seconds = target.default_wait_seconds
 
     if let Some(state) = snapshot {
       if state.done && state.error.is_some() {
@@ -47,7 +44,7 @@ impl Application {
             native_id: resolved_id,
             properties: ResourceProperties.Cluster(cluster),
           }
-        } else if expired {
+        } else if convergence_expired(snapshot, Some(cluster), wait_seconds) {
           StatusOutcome.Failure { failure: timeout_failure(cluster_name) }
         } else {
           StatusOutcome.InProgress {
@@ -57,7 +54,7 @@ impl Application {
         }
       },
       Ok(None) => {
-        if expired {
+        if convergence_expired(snapshot, None, wait_seconds) {
           StatusOutcome.Failure { failure: timeout_failure(cluster_name) }
         } else {
           StatusOutcome.InProgress {
@@ -67,7 +64,7 @@ impl Application {
         }
       },
       Err(failure) => {
-        if expired {
+        if convergence_expired(snapshot, None, wait_seconds) {
           StatusOutcome.Failure { failure: timeout_failure(cluster_name) }
         } else {
           StatusOutcome.InProgress {
@@ -78,6 +75,22 @@ impl Application {
       },
     }
   }
+}
+
+// The handle is lost on restart; the cluster created time backstops it.
+fn convergence_expired(
+  snapshot: Option<domain.ProcessSnapshot>,
+  cluster: Option<domain.Cluster>,
+  wait_seconds: int,
+) -> bool {
+  let budget = time.Duration(wait_seconds as int64) * time.Second
+  if let Some(state) = snapshot { return time.Since(state.started_at) > budget }
+  if let Some(observed) = cluster {
+    if let Ok(created) = time.Parse(time.RFC3339Nano, observed.created) {
+      return time.Since(created) > budget
+    }
+  }
+  false
 }
 
 fn timeout_failure(cluster_name: string) -> domain.Failure {

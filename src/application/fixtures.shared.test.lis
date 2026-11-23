@@ -2,6 +2,8 @@
 //
 // SPDX-License-Identifier: MIT
 
+import "go:time"
+
 import "domain"
 
 struct FakeHandle { state: domain.ProcessSnapshot }
@@ -31,7 +33,7 @@ fn busy_cluster() -> domain.Cluster {
     running_nodes: 1,
     total_nodes: 2,
     k8s_version: "v1.37.0-k3s1",
-    created: "2026-10-04T03:18:35Z",
+    created: time.Now().Format(time.RFC3339),
     nodes: [],
   }
 }

@@ -623,6 +623,17 @@ successful exit does not imply success. A background process may exit while the
 cluster is still converging, so status stays in progress until the cluster is
 ready or the deadline passes.
 
+#### Convergence deadline across restarts
+
+The registry is in memory, so a plugin restart loses every handle. Status then
+falls back to the observed cluster's `created` timestamp: the deadline is
+`created` plus `defaultWaitSeconds`. Parsing uses `time.RFC3339Nano`, which
+accepts timestamps with and without fractional seconds. A creation time the
+cluster does not report in that format is treated as not expired, so a
+malformed timestamp never invents a deadline. When neither a handle nor an
+observed cluster is available, such as a failed probe, the status stays in
+progress because nothing dates the operation.
+
 #### Bounded status probes
 
 `kiac get clusters` shells out to the container runtime. During VM boot it can

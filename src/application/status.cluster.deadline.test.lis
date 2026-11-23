@@ -98,6 +98,56 @@ fn probe_failure_after_failed_create_is_failure() {
   assert failure.message.contains("boom")
 }
 
+#[test("a busy cluster with no handle times out from its creation time")]
+fn busy_cluster_without_handle_times_out_from_created() {
+  let mut cluster = busy_cluster()
+  cluster.created = "2020-01-01T00:00:00Z"
+  let mut app = app_with_clusters([cluster])
+  let actual = app.check_status(context.Background(), target(), "dev", "")
+  let StatusOutcome.Failure { failure } = actual else {
+    assert false
+    return
+  }
+  assert failure.kind == domain.ErrorKind.ServiceTimeout
+}
+
+#[test("a recent cluster with no handle stays in progress")]
+fn recent_cluster_without_handle_stays_in_progress() {
+  let mut cluster = busy_cluster()
+  cluster.created = time.Now().Format(time.RFC3339)
+  let mut app = app_with_clusters([cluster])
+  let actual = app.check_status(context.Background(), target(), "dev", "")
+  let StatusOutcome.InProgress { .. } = actual else {
+    assert false
+    return
+  }
+}
+
+#[test("an unparseable creation time is not expired")]
+fn unparseable_created_is_not_expired() {
+  let mut cluster = busy_cluster()
+  cluster.created = "not a timestamp"
+  let mut app = app_with_clusters([cluster])
+  let actual = app.check_status(context.Background(), target(), "dev", "")
+  let StatusOutcome.InProgress { .. } = actual else {
+    assert false
+    return
+  }
+}
+
+#[test("a fractional created time still expires")]
+fn fractional_created_time_expires() {
+  let mut cluster = busy_cluster()
+  cluster.created = "2020-01-01T00:00:00.123456789Z"
+  let mut app = app_with_clusters([cluster])
+  let actual = app.check_status(context.Background(), target(), "dev", "")
+  let StatusOutcome.Failure { failure } = actual else {
+    assert false
+    return
+  }
+  assert failure.kind == domain.ErrorKind.ServiceTimeout
+}
+
 #[test("an expired busy cluster says it did not converge")]
 fn expired_cluster_message() {
   let mut app = app_with_clusters([busy_cluster()])

@@ -2,6 +2,8 @@
 //
 // SPDX-License-Identifier: MIT
 
+import "go:time"
+
 import "domain"
 
 fn ready_cluster() -> domain.Cluster {
@@ -29,13 +31,14 @@ fn ready_cluster_json() -> string {
 }
 
 fn busy_cluster_json() -> string {
-  "{
+  let created = time.Now().Format(time.RFC3339)
+  f"{{
     \"name\": \"dev\",
     \"status\": \"1/2 running\",
     \"runningNodes\": 1,
     \"totalNodes\": 2,
     \"k8sVersion\": \"v1.37.0-k3s1\",
-    \"created\": \"2026-10-04T03:18:35Z\",
+    \"created\": \"{created}\",
     \"nodes\": []
-  }"
+  }}"
 }
