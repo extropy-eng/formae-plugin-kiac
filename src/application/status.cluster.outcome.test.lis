@@ -117,3 +117,31 @@ fn missing_cluster_before_deadline_reports_waiting() {
   }
   assert message == "waiting for cluster dev"
 }
+
+#[test("a zero-node cluster is not ready")]
+fn zero_node_cluster_is_in_progress() {
+  let mut app = app_with_clusters([
+    domain.Cluster {
+      name: "dev",
+      status: "0/0 running",
+      running_nodes: 0,
+      total_nodes: 0,
+      ..,
+    },
+  ])
+  app.ops.put(
+    "dev",
+    FakeHandle {
+      state: domain.ProcessSnapshot {
+        done: false,
+        error: None,
+        started_at: time.Now(),
+      },
+    },
+  )
+  let actual = app.check_status(context.Background(), target(), "dev", "")
+  let StatusOutcome.InProgress { .. } = actual else {
+    assert false
+    return
+  }
+}

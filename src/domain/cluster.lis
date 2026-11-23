@@ -82,3 +82,7 @@ pub fn node_power_for(state: string) -> Option<NodePower> {
     _ => None,
   }
 }
+
+pub fn is_ready(cluster: Cluster) -> bool {
+  cluster.total_nodes > 0 && cluster.running_nodes == cluster.total_nodes
+}

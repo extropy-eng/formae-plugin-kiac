@@ -34,3 +34,23 @@ fn unknown_node_state_has_no_power() {
   assert node_power_for("paused") == None
   assert node_power_for("") == None
 }
+
+#[test("a cluster is ready only when it has a node and all are running")]
+fn cluster_ready_requires_a_node() {
+  let empty = Cluster {
+    name: "dev",
+    status: "0/0 running",
+    running_nodes: 0,
+    total_nodes: 0,
+    ..,
+  }
+  let ready = Cluster {
+    name: "dev",
+    status: "2/2 running",
+    running_nodes: 2,
+    total_nodes: 2,
+    ..,
+  }
+  assert !is_ready(empty)
+  assert is_ready(ready)
+}

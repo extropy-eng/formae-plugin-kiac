@@ -42,7 +42,7 @@ impl Application {
     match self.reader.find_cluster(probe_ctx, target, cluster_name) {
       Ok(Some(cluster)) => {
         let resolved_id = outcome_id(native_id, cluster.name)
-        if cluster.running_nodes == cluster.total_nodes {
+        if domain.is_ready(cluster) {
           StatusOutcome.Success {
             native_id: resolved_id,
             properties: ResourceProperties.Cluster(cluster),

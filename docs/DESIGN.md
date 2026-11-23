@@ -600,8 +600,8 @@ and decides:
 
 1. If the process is done with an error, general service exception with the
    captured error string.
-2. If the cluster exists and its running node count equals its total node
-   count, success.
+2. If the cluster exists and has at least one node and its running node count
+   equals its total node count, success.
 3. If the cluster exists but is not ready and the convergence deadline has not
    passed, in progress with the cluster status.
 4. If the cluster exists and the deadline has passed, service timeout.
