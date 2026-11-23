@@ -9,10 +9,4 @@ run = "echo $GH_ORG_TOKEN | gh auth login --with-token"
 [tasks."runners:apply"]
 description = "configures GitHub Actions runners on this macOS host"
 secrets = "GH_ORG_TOKEN"
-# gh prefers GH_TOKEN over the system-wide GITHUB_TOKEN, which lacks org admin scope
-run = """
-  GH_TOKEN=$GH_ORG_TOKEN mac-runner apply --file .github/mac-runner.yaml --yes
-  sudo -n /run/current-system/sw/bin/macrunner-contextify
-  mac-runner stop macOS-runner || true
-  mac-runner start macOS-runner
-"""
+run = "sh .config/mise/tasks/runners/apply-script.sh"
