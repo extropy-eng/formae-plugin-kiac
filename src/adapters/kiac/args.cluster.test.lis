@@ -87,3 +87,72 @@ fn cluster_argv_includes_all_optional_flags() {
   ]
   assert actual.equals(expected)
 }
+
+#[test("cluster argv passes every supported create flag")]
+fn cluster_argv_passes_every_create_flag() {
+  let actual = cluster_create_args(
+    domain.ClusterSpec {
+      name: "dev",
+      distro: "kubeadm",
+      cni: "cilium",
+      cpus: "2",
+      memory: "8G",
+      cp_memory: "4G",
+      k8s_version: "v1.30.0",
+      image: "node:latest",
+      kernel: "full",
+      ip_family: "dual",
+      observability: true,
+      gpu_workers: 1,
+      gpu_image: "gpu:latest",
+      gpu_disk_size: "30G",
+      gpu_resource_driver: "dra",
+      no_edge_proxy: true,
+      no_lb: true,
+      no_metrics: true,
+      no_storage: true,
+      wait: "10m",
+      ..,
+    },
+  )
+  let expected = [
+    "create",
+    "cluster",
+    "--name",
+    "dev",
+    "--distro",
+    "kubeadm",
+    "--cni",
+    "cilium",
+    "--cpus",
+    "2",
+    "--memory",
+    "8G",
+    "--cp-memory",
+    "4G",
+    "--k8s-version",
+    "v1.30.0",
+    "--image",
+    "node:latest",
+    "--kernel",
+    "full",
+    "--ip-family",
+    "dual",
+    "--observability",
+    "--gpu-workers",
+    "1",
+    "--gpu-image",
+    "gpu:latest",
+    "--gpu-disk-size",
+    "30G",
+    "--gpu-resource-driver",
+    "dra",
+    "--no-edge-proxy",
+    "--no-lb",
+    "--no-metrics",
+    "--no-storage",
+    "--wait",
+    "10m",
+  ]
+  assert actual.equals(expected)
+}

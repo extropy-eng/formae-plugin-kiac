@@ -48,6 +48,38 @@ pub fn cluster_create_args(spec: domain.ClusterSpec) -> Slice<string> {
     args = args.append(spec.cpus)
   }
 
+  if !spec.memory.is_empty() {
+    args = args.append("--memory")
+    args = args.append(spec.memory)
+  }
+
+  if !spec.cp_memory.is_empty() {
+    args = args.append("--cp-memory")
+    args = args.append(spec.cp_memory)
+  }
+
+  if !spec.k8s_version.is_empty() {
+    args = args.append("--k8s-version")
+    args = args.append(spec.k8s_version)
+  }
+
+  if !spec.image.is_empty() {
+    args = args.append("--image")
+    args = args.append(spec.image)
+  }
+
+  if !spec.kernel.is_empty() {
+    args = args.append("--kernel")
+    args = args.append(spec.kernel)
+  }
+
+  if !spec.ip_family.is_empty() {
+    args = args.append("--ip-family")
+    args = args.append(spec.ip_family)
+  }
+
+  if spec.observability { args = args.append("--observability") }
+
   if spec.workers > 0 {
     args = args.append("--workers")
     args = args.append(f"{spec.workers}")
@@ -63,8 +95,26 @@ pub fn cluster_create_args(spec: domain.ClusterSpec) -> Slice<string> {
     args = args.append(spec.gpu_image)
   }
 
+  if !spec.gpu_disk_size.is_empty() {
+    args = args.append("--gpu-disk-size")
+    args = args.append(spec.gpu_disk_size)
+  }
+
+  if !spec.gpu_resource_driver.is_empty() {
+    args = args.append("--gpu-resource-driver")
+    args = args.append(spec.gpu_resource_driver)
+  }
+
   if spec.gateway { args = args.append("--gateway") }
+  if spec.no_edge_proxy { args = args.append("--no-edge-proxy") }
   if spec.no_lb { args = args.append("--no-lb") }
+  if spec.no_metrics { args = args.append("--no-metrics") }
+  if spec.no_storage { args = args.append("--no-storage") }
+
+  if !spec.wait.is_empty() {
+    args = args.append("--wait")
+    args = args.append(spec.wait)
+  }
 
   for dns in spec.dns {
     args = args.append("--dns")

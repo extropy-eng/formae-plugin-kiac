@@ -551,10 +551,12 @@ the methods it needs.
 | `KIAC::Cluster::Verification` | Cluster name | Read-only health snapshot. |
 | `KIAC::Cluster::Resume` | `<cluster>/<nonce>` | Async heal after a host reboot. |
 
-Cluster creation accepts a name, distro, CNI, worker count, optional GPU
-workers and image, gateway and no-lb toggles, DNS entries, mounts, and
-published ports. kiac reports only observed cluster state: status, node counts,
-installed Kubernetes version, creation time, and nodes.
+Cluster creation accepts a name, distro, CNI, CPU count, memory, control-plane
+memory, Kubernetes version, node image, kernel, IP family, observability, worker
+count, optional GPU workers, image, disk size and resource driver, gateway,
+edge-proxy, no-lb, metrics and storage toggles, wait duration, DNS entries,
+mounts, and published ports. kiac reports only observed cluster state: status,
+node counts, installed Kubernetes version, creation time, and nodes.
 
 The schema marks properties `createOnly` when kiac cannot change them after
 creation and `writeOnly` when kiac cannot read them back. Returning a made-up
@@ -586,7 +588,7 @@ Cluster arguments construction keeps kiac's rules:
 - Worker and GPU counts are emitted only when positive.
 - `--gpu-image` is emitted when an image is set.
 - `--dns` is emitted once per entry, including empty entries.
-- Mount specs use `type=...,source=...,target=...[,readonly]`.
+- Mount specs use `type=bind,source=...,target=...[,readonly]`.
 - Publish specs use `[hostIp:]hostPort:containerPort[/protocol]`.
 
 ### Async and status

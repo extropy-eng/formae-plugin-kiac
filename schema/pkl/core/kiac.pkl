@@ -10,9 +10,6 @@ import "@formae/formae.pkl"
 @formae.SubResourceHint {}
 class Mount extends formae.SubResource {
   @formae.FieldHint { createOnly = true }
-  mountType: String = "bind"
-
-  @formae.FieldHint { createOnly = true }
   source: String
 
   @formae.FieldHint { createOnly = true }

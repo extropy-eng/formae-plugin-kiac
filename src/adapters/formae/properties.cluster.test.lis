@@ -89,6 +89,42 @@ fn cluster_property_names_decode() -> Result<(), error> {
   Ok(())
 }
 
+#[test("every cluster create field decodes")]
+fn every_cluster_create_field_decodes() -> Result<(), error> {
+  let spec = decode_cluster_props(raw_message(
+    "{
+      \"name\": \"dev\",
+      \"memory\": \"8G\",
+      \"cpMemory\": \"4G\",
+      \"k8sVersion\": \"v1.30.0\",
+      \"image\": \"node:latest\",
+      \"kernel\": \"full\",
+      \"ipFamily\": \"dual\",
+      \"observability\": true,
+      \"gpuDiskSize\": \"30G\",
+      \"gpuResourceDriver\": \"dra\",
+      \"noEdgeProxy\": true,
+      \"noMetrics\": true,
+      \"noStorage\": true,
+      \"wait\": \"10m\"
+    }",
+  ))?
+  assert spec.memory == "8G"
+  assert spec.cp_memory == "4G"
+  assert spec.k8s_version == "v1.30.0"
+  assert spec.image == "node:latest"
+  assert spec.kernel == "full"
+  assert spec.ip_family == "dual"
+  assert spec.observability
+  assert spec.gpu_disk_size == "30G"
+  assert spec.gpu_resource_driver == "dra"
+  assert spec.no_edge_proxy
+  assert spec.no_metrics
+  assert spec.no_storage
+  assert spec.wait == "10m"
+  Ok(())
+}
+
 #[test("decoded cluster spec carries its fields")]
 fn decoded_cluster_spec_carries_fields() -> Result<(), error> {
   let cluster = decode_cluster_props(raw_message(
