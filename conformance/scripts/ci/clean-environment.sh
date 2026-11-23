@@ -14,7 +14,8 @@ set -o pipefail
 # prefix used for test resources - should match what conformance tests create
 cluster_prefix="${cluster_prefix:-sdk-test-}"
 
-cluster_filter="(. // [])[] | select(.name | test(\"^${cluster_prefix}[0-9a-f]{8}$\")) | .name"
+pattern="^${cluster_prefix}[0-9a-f]{8}(-replaced)?$"
+cluster_filter="(. // [])[] | select(.name | test(\"${pattern}\")) | .name"
 
 echo "Deleting clusters with prefix '${cluster_prefix}'"
 
