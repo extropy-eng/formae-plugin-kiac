@@ -59,7 +59,7 @@ fn app_with_cluster_lifecycle(
 fn delete_missing_cluster_succeeds() -> Result<(), error> {
   let mut app = app_with_clusters([])
   let actual = app.delete_cluster(context.Background(), target(), "gone")?
-  assert actual == DeleteOutcome { native_id: "gone", no_op: false }
+  assert actual == DeleteOutcome { native_id: "gone", no_op: true }
   Ok(())
 }
 

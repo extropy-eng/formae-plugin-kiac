@@ -646,7 +646,9 @@ The plugin assumes the agent may retry any operation:
   properties once it is ready. While the existing cluster is still booting,
   create returns in progress with the cluster status and starts no second
   process.
-- Deleting a cluster that does not exist returns success.
+- Deleting a cluster that does not exist returns success and reports the SDK
+  no-op operation (`no_op: true`). The existing-cluster lookup decides, so a
+  delete for an already-absent cluster never claims a real delete.
 - Deleting a node, image, verification, or resume resource is a no-op.
 - Updating a node to its current power state is a no-op.
 - Resuming a cluster is safe to repeat. The `nonce` property requests a new

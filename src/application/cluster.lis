@@ -92,6 +92,6 @@ impl Application {
   ) -> Result<DeleteOutcome, domain.Failure> {
     let existing = self.reader.find_cluster(ctx, target, native_id)?.is_some()
     if existing { self.lifecycle.delete_cluster(ctx, target, native_id)? }
-    Ok(DeleteOutcome { native_id, no_op: false })
+    Ok(DeleteOutcome { native_id, no_op: !existing })
   }
 }
