@@ -18,9 +18,9 @@ impl Application {
     self: Ref<Application>,
     native_id: string,
   ) -> Result<ResourceProperties, domain.Failure> {
-    let (cluster_name, _nonce) = domain.split_id(native_id)
+    let (cluster_name, nonce) = domain.split_id(native_id)
     Ok(ResourceProperties.Resume(
-      domain.Resume { id: native_id, cluster_name, nonce: "" },
+      domain.Resume { id: native_id, cluster_name, nonce },
     ))
   }
 

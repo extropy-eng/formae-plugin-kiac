@@ -552,7 +552,7 @@ the methods it needs.
 | `KIAC::GPU::Compat` | `<cluster>/<namespace>` | Enable or disable NVIDIA compatibility. |
 | `KIAC::Cluster::Image` | `<cluster>/<image>` | Load an image into every node. |
 | `KIAC::Cluster::Verification` | Cluster name | Read-only health snapshot. |
-| `KIAC::Cluster::Resume` | `<cluster>/<nonce>` | Async heal after a host reboot. |
+| `KIAC::Cluster::Resume` | `<cluster>/<nonce>` | Async heal after a host reboot; read echoes the nonce. |
 
 Cluster creation accepts a name, distro, CNI, CPU count, memory, control-plane
 memory, Kubernetes version, node image, kernel, IP family, observability, worker
@@ -565,6 +565,11 @@ The schema marks properties `createOnly` when kiac cannot change them after
 creation and `writeOnly` when kiac cannot read them back. Returning a made-up
 value for a write-only property would make formae believe it can detect drift
 that kiac cannot report.
+
+Resume read splits the native ID and echoes both parts, so `clusterName` and
+`nonce` round-trip unchanged. Completion is not observable: kiac cannot report
+whether a resume finished after the process exits or the plugin restarts, so the
+schema has no completion field.
 
 `Node` declares a parent reference to `Cluster` through `clusterName`, so the
 agent can order node operations after the cluster exists. `Image`,

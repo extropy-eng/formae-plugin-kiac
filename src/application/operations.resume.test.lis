@@ -39,7 +39,7 @@ fn read_resume_echoes_nonce_id() -> Result<(), error> {
     return Ok(())
   }
   assert resume ==
-  domain.Resume { id: "dev/n1", cluster_name: "dev", nonce: "" }
+  domain.Resume { id: "dev/n1", cluster_name: "dev", nonce: "n1" }
   Ok(())
 }
 

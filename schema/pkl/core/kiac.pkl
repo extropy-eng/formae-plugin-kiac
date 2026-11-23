@@ -329,9 +329,6 @@ class Resume extends formae.Resource {
 
   @formae.FieldHint { createOnly = true }
   nonce: String
-
-  @formae.FieldHint { hasProviderDefault = true }
-  completed: Boolean?
 }
 
 // =============================================================================
