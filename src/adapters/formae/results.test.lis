@@ -39,6 +39,34 @@ fn in_progress_create_carries_native_id() {
   assert progress.NativeID == "dev"
 }
 
+#[test("a failed update result carries the native id")]
+fn failed_update_carries_native_id() {
+  let result = update_failure(
+    domain.fail(domain.ErrorKind.GeneralServiceException, "boom"),
+    "dev/cp",
+  )
+  let Some(progress) = result.ProgressResult else {
+    assert false
+    return
+  }
+  assert progress.NativeID == "dev/cp"
+  assert progress.RequestID == "dev/cp"
+}
+
+#[test("a failed delete result carries the native id")]
+fn failed_delete_carries_native_id() {
+  let result = delete_failure(
+    domain.fail(domain.ErrorKind.NotFound, "gone"),
+    "dev",
+  )
+  let Some(progress) = result.ProgressResult else {
+    assert false
+    return
+  }
+  assert progress.NativeID == "dev"
+  assert progress.RequestID == "dev"
+}
+
 #[test("a no-op delete result uses the no-op operation")]
 fn noop_delete_uses_noop_operation() {
   let result = delete_result(
