@@ -45,6 +45,7 @@ pub fn start_process(
 
   let mut command = exec.Command(target.kiac_path, args...)
   command.Stderr = Some(&stderr)
+  command.WaitDelay = time.Second
 
   match command.Start() {
     Ok(_) => {

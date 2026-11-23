@@ -1,0 +1,17 @@
+// © 2026 Extropy Engineering
+//
+// SPDX-License-Identifier: MIT
+
+import "go:time"
+
+#[test("a background process returns when a child holds stderr")]
+fn background_process_wait_delay() -> Result<(), error> {
+  let target = target_with_fake_kiac("(sleep 30) &\nexit 1")?
+  let started = time.Now()
+  let handle = start_process(target, ["create", "cluster", "--name", "dev"])
+  let snapshot = wait_for_handle(handle)?
+  assert snapshot.done
+  assert snapshot.error.is_some()
+  assert time.Since(started) < 4 * time.Second
+  Ok(())
+}

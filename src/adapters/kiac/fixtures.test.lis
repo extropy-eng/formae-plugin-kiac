@@ -49,7 +49,7 @@ fn wait_for_file_contains(path: string, needle: string) -> string {
 fn wait_for_handle(
   handle: ports.OperationHandle,
 ) -> Result<domain.ProcessSnapshot, error> {
-  for _i in 0..200 {
+  for _i in 0..500 {
     let snapshot = handle.snapshot()
     if snapshot.done { return Ok(snapshot) }
     time.Sleep(10 * time.Millisecond)
