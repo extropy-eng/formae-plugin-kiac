@@ -14,14 +14,14 @@ url = "https://github.com/apple/container/releases/download/1.7.1/container-1.7.
 url_api = "https://api.github.com/repos/apple/container/releases/assets/719067242"
 
 [[tools."github:saiyam1814/kiac"]]
-version = "0.11.0"
+version = "0.13.0"
 backend = "github:saiyam1814/kiac"
 specifiers = ["latest"]
 
 [tools."github:saiyam1814/kiac"."platforms.macos-arm64"]
-checksum = "sha256:8a785db8fee9a61c8b966e7dd3c6c6333a2f0a21cb56ebe0e02f89857e42f579"
-url = "https://github.com/saiyam1814/kiac/releases/download/v0.11.0/kiac_0.11.0_darwin_arm64.tar.gz"
-url_api = "https://api.github.com/repos/saiyam1814/kiac/releases/assets/702487163"
+checksum = "sha256:9e79cfb31156fe4b72e644b5bd71f0d8e6ddc690e843cd576aab6441058176d2"
+url = "https://github.com/saiyam1814/kiac/releases/download/v0.13.0/kiac_0.13.0_darwin_arm64.tar.gz"
+url_api = "https://api.github.com/repos/saiyam1814/kiac/releases/assets/767558814"
 provenance = "github-attestations"
 
 [[tools.gotestsum]]
