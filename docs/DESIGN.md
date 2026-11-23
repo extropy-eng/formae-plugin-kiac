@@ -498,8 +498,8 @@ The dispatch rules are:
 - `Update` supports only node and GPU compatibility. Every other type returns
   `NotUpdatable`.
 - `Delete` supports all six resource types.
-- `List` supports only cluster and node. Every other type, and every lookup
-  failure, returns an empty list.
+- `List` supports only cluster and node. A malformed target or a failed kiac
+  lookup returns an error. Every other type returns an empty list.
 - `Status` supports only cluster and resume. Every other type returns an
   `InvalidRequest` failure result.
 

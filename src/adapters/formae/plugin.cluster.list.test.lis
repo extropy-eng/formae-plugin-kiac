@@ -22,3 +22,30 @@ fn sdk_list_returns_cluster_ids() -> Result<(), error> {
   assert result.NativeIDs.equals(["a", "b"])
   Ok(())
 }
+
+#[test("the SDK list path returns an error when kiac fails")]
+fn sdk_list_returns_error_on_kiac_failure() -> Result<(), error> {
+  let path = fake_kiac("echo 'boom' >&2; exit 1")?
+  let mut plugin = plugin_with_kiac(path)
+  let request = resource.ListRequest {
+    ResourceType: TYPE_CLUSTER,
+    TargetConfig: target_for(path),
+    ..,
+  }
+  let result = plugin.List(context.Background(), &request)
+  assert result.is_err()
+  Ok(())
+}
+
+#[test("the SDK list path returns an error for a malformed target")]
+fn sdk_list_returns_error_for_bad_target() -> Result<(), error> {
+  let mut plugin = plugin_with_kiac("/bin/true")
+  let request = resource.ListRequest {
+    ResourceType: TYPE_CLUSTER,
+    TargetConfig: raw_message("{"),
+    ..,
+  }
+  let result = plugin.List(context.Background(), &request)
+  assert result.is_err()
+  Ok(())
+}

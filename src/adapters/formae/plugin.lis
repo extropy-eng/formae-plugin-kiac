@@ -373,17 +373,17 @@ impl Plugin {
       TYPE_CLUSTER => {
         let target = match parse_target(request.TargetConfig) {
           Ok(target) => target,
-          Err(_) => return Ok(list_result([])),
+          Err(failure) => return Err(failure),
         }
-        match self.app.list_clusters(ctx, target) {
-          Ok(ids) => Ok(list_result(ids)),
-          Err(_) => Ok(list_result([])),
-        }
+        self.app
+          .list_clusters(ctx, target)
+          .map(list_result)
+          .map_err(|failure| failure as error)
       },
       TYPE_NODE => {
         let target = match parse_target(request.TargetConfig) {
           Ok(target) => target,
-          Err(_) => return Ok(list_result([])),
+          Err(failure) => return Err(failure),
         }
         let cluster = request.AdditionalProperties.map_or("", |properties| {
           properties
@@ -391,10 +391,10 @@ impl Plugin {
             .or_else(|| properties.get("cluster"))
             .unwrap_or("")
         })
-        match self.app.list_nodes(ctx, target, cluster) {
-          Ok(ids) => Ok(list_result(ids)),
-          Err(_) => Ok(list_result([])),
-        }
+        self.app
+          .list_nodes(ctx, target, cluster)
+          .map(list_result)
+          .map_err(|failure| failure as error)
       },
       _ => Ok(list_result([])),
     }

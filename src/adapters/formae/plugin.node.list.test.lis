@@ -22,3 +22,20 @@ fn sdk_list_returns_node_ids() -> Result<(), error> {
   assert result.NativeIDs.equals(expected)
   Ok(())
 }
+
+#[test("the SDK node list path returns an error when kiac fails")]
+fn sdk_node_list_returns_error_on_kiac_failure() -> Result<(), error> {
+  let path = fake_kiac("echo 'boom' >&2; exit 1")?
+  let mut plugin = plugin_with_kiac(path)
+  let mut properties = Map.new<string, string>()
+  properties["clusterName"] = "dev"
+  let request = resource.ListRequest {
+    ResourceType: TYPE_NODE,
+    TargetConfig: target_for(path),
+    AdditionalProperties: Some(properties),
+    ..,
+  }
+  let result = plugin.List(context.Background(), &request)
+  assert result.is_err()
+  Ok(())
+}
