@@ -86,18 +86,26 @@ outputs = ["target/.validate-schema"]
 [tasks.lint]
 description = "lints and typechecks test and production code"
 depends = "emit"
-run = "lis check . --deny warnings"
+run = """
+  lis check . --deny warnings
+  touch target/.lint
+"""
 cache.enabled = true
 sources = ["lisette.toml", "src/**/*.lis"]
-outputs = ["target"]
+# target is emit's output and is rewritten by concurrently running tasks
+outputs = ["target/.lint"]
 
 [tasks."test"]
 description = "transpiles, builds and runs all tests"
 depends = "emit"
-run = "lis test --go-flags {{ vars.go_flags }}"
+run = """
+  lis test --go-flags {{ vars.go_flags }}
+  touch target/.test
+"""
 cache.enabled = true
 sources = ["lisette.toml", "src/**/*.lis"]
-outputs = ["target"]
+# target is emit's output and is rewritten by concurrently running tasks
+outputs = ["target/.test"]
 
 [tasks.build]
 description = "build the plugin binary"
@@ -107,7 +115,7 @@ run = """
 """
 cache.enabled = true
 sources = ["formae-plugin.pkl", "lisette.toml", "src/**/*.lis", "!src/**/*.test.lis"]
-outputs = ["bin", "target"]
+outputs = ["bin"]
 
 [tasks.clean]
 description = "removes build artifacts"
