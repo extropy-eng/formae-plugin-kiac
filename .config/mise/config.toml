@@ -60,6 +60,7 @@ run = "lis emit"
 cache.enabled = true
 sources = ["lisette.toml", "src/**/*.lis"]
 outputs = ["target"]
+hide = true
 silent = true
 
 [tasks.schema-version]
@@ -68,6 +69,7 @@ run = "mkdir -p schema/pkl && echo {{ vars.plugin_version }} >| schema/pkl/VERSI
 cache.enabled = true
 sources = ["formae-plugin.pkl"]
 outputs = ["schema/pkl/VERSION"]
+hide = true
 
 [tasks."validate:schema"]
 description = "validates the plugin schema against formae conventions"
