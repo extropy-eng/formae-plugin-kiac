@@ -10,6 +10,11 @@ task.quiet = true
 task.run_auto_install = true
 
 [shell_alias]
+aliases = "mise shell-alias ls"
+bump = "mise upgrade --no-global --bump --prune"
+tasks = "mise tasks ls --no-global --extended"
+tools = "mise ls --no-global --outdated"
+
 mdlint = "mise run --env=docs lint:markdown"
 test-conformance = "misee run --env=conformanc test:conformance"
 
