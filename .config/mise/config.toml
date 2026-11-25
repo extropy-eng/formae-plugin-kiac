@@ -11,7 +11,7 @@ task.run_auto_install = true
 
 [shell_alias]
 mdlint = "mise run --env=docs lint:markdown"
-test-conformance = "mise --env=conformance run test:conformance"
+test-conformance = "misee run --env=conformanc test:conformance"
 
 [tools]
 # Lisette 0.13.0's bindgen only knows Go 1.26 stdlib typedefs.
