@@ -23,5 +23,5 @@ EOF
 description = "lints Markdown documentation"
 run = "markdownlint-cli2 '{**/*.md,!target/**/*.md}'"
 cache.enabled = true
-sources = ["README.md", "docs/**/*.md", ".markdownlint-cli2.yaml"]
+sources = ["**/*.md", "!target/**/*.md", ".markdownlint-cli2.yaml"]
 outputs = []
