@@ -1,4 +1,5 @@
 [tools]
+git-cliff = "latest"
 markdownlint-cli2 = { version = "latest", depends = "node" }
 
 [tools.node]
