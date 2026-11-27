@@ -52,7 +52,7 @@ go_flags = "-trimpath"
 [tasks."validate:manifest"]
 description = "validates the plugin manifest"
 run = """
-  pkl eval formae-plugin.pkl --format json 1> /dev/null
+  pkl eval formae-plugin.pkl --format json 1>/dev/null
   echo "✓ Plugin manifest validated successfully"
 """
 cache.enabled = true

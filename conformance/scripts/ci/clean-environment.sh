@@ -22,7 +22,7 @@ echo "Deleting clusters with prefix '${cluster_prefix}'"
 kiac get clusters -o json \
   | jq --raw-output "$(echo "$cluster_filter")" \
   | while IFS= read -r cluster_name; do \
-      kiac delete cluster --name "$cluster_name" 2> /dev/null || true; \
+      kiac delete cluster --name "$cluster_name" 2>/dev/null || true; \
     done
 
 echo "Cleanup complete"
